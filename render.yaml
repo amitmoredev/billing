@@ -1,0 +1,81 @@
+# Render Blueprint — deploys the API and the web app from this repo.
+#
+# Render → New → Blueprint → pick this repo. Values marked `sync: false` are
+# asked for on the first deploy (copy them from backend/.env). Values marked
+# `generateValue` are random secrets Render creates for you.
+
+services:
+  # ------------------------------------------------------------------ API ---
+  - type: web
+    name: billing-api
+    runtime: node
+    region: singapore
+    plan: free # sleeps after 15 min idle (~50 s cold start); 0.5c-512mb stays awake
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # MongoDB Atlas connection string
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OTP_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false # the web app's URL, e.g. https://billing-web.onrender.com
+      - key: OTP_DEBUG_RETURN_OTP
+        value: "false"
+      - key: MSG91_AUTH_KEY
+        sync: false
+      - key: MSG91_INTEGRATED_NUMBER
+        sync: false
+      - key: MSG91_TEMPLATE_NAME
+        sync: false
+      - key: MSG91_TEMPLATE_NAMESPACE
+        sync: false
+      - key: MSG91_TEMPLATE_LANGUAGE_CODE
+        value: en
+      - key: MSG91_TEMPLATE_LANGUAGE_POLICY
+        value: deterministic
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+
+  # -------------------------------------------------------------- Web app ---
+  # Static site. /api/* is proxied to the API so the browser only ever talks
+  # to this one origin: the session cookie stays first-party. Calling the API
+  # directly would make it a cross-site cookie (onrender.com subdomains are
+  # separate sites), which Safari blocks.
+  - type: web
+    name: billing-web
+    runtime: static
+    # Built from the repo root (no rootDir) so the publish path is unambiguous.
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    buildFilter:
+      paths:
+        - frontend/**
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_API_URL
+        value: /api
+    routes:
+      # If Render gives the API a different URL, update it here.
+      - type: rewrite
+        source: /api/*
+        destination: https://billing-api.onrender.com/api/*
+      # Client-side routes (/bills/123, /admin/users) all load the app.
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,0 +1,17 @@
+# Dependencies and builds
+node_modules/
+dist/
+dist-ssr/
+
+# Secrets: real env files never leave the machine; .env.example documents them.
+.env
+.env.*
+!.env.example
+
+# Local tooling
+.claude/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log

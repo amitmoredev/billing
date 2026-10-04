@@ -1,0 +1,477 @@
+@import 'tailwindcss';
+
+/* Dark mode is driven by a `dark` class on <html>, toggled from ThemeContext. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens.
+ *
+ * The palette is monochrome: the accent is simply the opposite end of the
+ * greyscale from the page (near-black on light, white on black). Hue is
+ * reserved for meaning — green, amber and red on status only.
+ *
+ * Every semantic colour points at a raw variable redefined under `.dark`, so a
+ * utility like `bg-surface` renders correctly in both themes without a `dark:`
+ * counterpart on every element.
+ */
+@theme {
+  /*
+   * One family, used with intent: Geist for all UI text, its mono cut for
+   * figures that have to line up in a column. Headings differ by weight and
+   * tracking rather than by typeface, which keeps the pages looking like one
+   * product instead of a pairing exercise.
+   */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+
+  /* Type scale — a notch larger than Tailwind's default throughout. */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.15rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.4rem;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.65rem;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.9rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.2rem;
+  --text-3xl: 2.125rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.625rem;
+  --text-4xl--line-height: 3rem;
+
+  /* Greyscale ramp — inverts in dark so `brand-500` is always "the accent". */
+  --color-brand-50: var(--ramp-50);
+  --color-brand-100: var(--ramp-100);
+  --color-brand-200: var(--ramp-200);
+  --color-brand-300: var(--ramp-300);
+  --color-brand-400: var(--ramp-400);
+  --color-brand-500: var(--ramp-500);
+  --color-brand-600: var(--ramp-600);
+  --color-brand-700: var(--ramp-700);
+  --color-brand-800: var(--ramp-800);
+  --color-brand-900: var(--ramp-900);
+
+  /* Accent = solid fill for primary actions */
+  --color-accent: var(--app-accent);
+  --color-accent-hover: var(--app-accent-hover);
+  --color-on-accent: var(--app-on-accent);
+
+  /* Surfaces */
+  --color-canvas: var(--app-canvas);
+  --color-surface: var(--app-surface);
+  --color-sunken: var(--app-sunken);
+  --color-elevated: var(--app-elevated);
+  --color-hover: var(--app-hover);
+
+  /* Text */
+  --color-ink: var(--app-ink);
+  --color-muted: var(--app-muted);
+  --color-subtle: var(--app-subtle);
+
+  /* Borders */
+  --color-line: var(--app-line);
+  --color-line-strong: var(--app-line-strong);
+
+  /* Tinted states — soft background + readable foreground in both themes */
+  --color-accent-soft: var(--tint-accent-bg);
+  --color-accent-fg: var(--tint-accent-fg);
+  --color-accent-line: var(--tint-accent-line);
+
+  --color-ok-soft: var(--tint-ok-bg);
+  --color-ok-fg: var(--tint-ok-fg);
+  --color-ok-line: var(--tint-ok-line);
+
+  --color-warn-soft: var(--tint-warn-bg);
+  --color-warn-fg: var(--tint-warn-fg);
+  --color-warn-line: var(--tint-warn-line);
+
+  --color-danger-soft: var(--tint-danger-bg);
+  --color-danger-fg: var(--tint-danger-fg);
+  --color-danger-line: var(--tint-danger-line);
+
+  --color-neutral-soft: var(--tint-neutral-bg);
+  --color-neutral-fg: var(--tint-neutral-fg);
+  --color-neutral-line: var(--tint-neutral-line);
+
+  --shadow-card: var(--app-shadow-card);
+  --shadow-raised: var(--app-shadow-raised);
+  --shadow-float: var(--app-shadow-float);
+
+  --radius-card: 1rem;
+}
+
+/* ---------------------------------------------------------------- light --- */
+:root {
+  --ramp-50: #fafafa;
+  --ramp-100: #f4f4f5;
+  --ramp-200: #e4e4e7;
+  --ramp-300: #d4d4d8;
+  --ramp-400: #a1a1aa;
+  --ramp-500: #18181b;
+  --ramp-600: #27272a;
+  --ramp-700: #3f3f46;
+  --ramp-800: #52525b;
+  --ramp-900: #71717a;
+
+  --app-accent: #18181b;
+  --app-accent-hover: #000000;
+  --app-on-accent: #ffffff;
+
+  --app-canvas: #f6f6f7;
+  --app-surface: #ffffff;
+  --app-sunken: #fafafa;
+  --app-elevated: #ffffff;
+  --app-hover: #f4f4f5;
+
+  --app-ink: #09090b;
+  --app-muted: #52525b;
+  --app-subtle: #9b9ba4;
+
+  --app-line: #e8e8ec;
+  --app-line-strong: #d4d4d8;
+
+  --tint-accent-bg: #f4f4f5;
+  --tint-accent-fg: #18181b;
+  --tint-accent-line: #e4e4e7;
+
+  --tint-ok-bg: #ecfdf5;
+  --tint-ok-fg: #047857;
+  --tint-ok-line: #a7f3d0;
+
+  --tint-warn-bg: #fffbeb;
+  --tint-warn-fg: #b45309;
+  --tint-warn-line: #fde68a;
+
+  --tint-danger-bg: #fef2f2;
+  --tint-danger-fg: #b91c1c;
+  --tint-danger-line: #fecaca;
+
+  --tint-neutral-bg: #f4f4f5;
+  --tint-neutral-fg: #52525b;
+  --tint-neutral-line: #e4e4e7;
+
+  --app-shadow-card: 0 1px 2px rgb(9 9 11 / 0.05), 0 1px 3px rgb(9 9 11 / 0.04);
+  --app-shadow-raised: 0 1px 2px rgb(9 9 11 / 0.06), 0 12px 28px rgb(9 9 11 / 0.08);
+  --app-shadow-float: 0 18px 44px rgb(9 9 11 / 0.16);
+
+  --scroll-thumb: #d4d4d8;
+  --scroll-thumb-hover: #a1a1aa;
+
+  color-scheme: light;
+}
+
+/* ------------------------------------------------------------ true black --- */
+.dark {
+  --ramp-50: #131316;
+  --ramp-100: #1c1c20;
+  --ramp-200: #2a2a30;
+  --ramp-300: #3f3f46;
+  --ramp-400: #71717a;
+  --ramp-500: #fafafa;
+  --ramp-600: #e4e4e7;
+  --ramp-700: #d4d4d8;
+  --ramp-800: #a1a1aa;
+  --ramp-900: #8b8b93;
+
+  --app-accent: #fafafa;
+  --app-accent-hover: #ffffff;
+  --app-on-accent: #09090b;
+
+  --app-canvas: #000000;
+  --app-surface: #0a0a0b;
+  --app-sunken: #0f0f11;
+  --app-elevated: #141417;
+  --app-hover: #1a1a1e;
+
+  --app-ink: #fafafa;
+  --app-muted: #a1a1aa;
+  --app-subtle: #6e6e78;
+
+  --app-line: #1f1f23;
+  --app-line-strong: #2e2e34;
+
+  --tint-accent-bg: #1a1a1e;
+  --tint-accent-fg: #fafafa;
+  --tint-accent-line: #2e2e34;
+
+  --tint-ok-bg: color-mix(in oklab, #10b981 15%, transparent);
+  --tint-ok-fg: #6ee7b7;
+  --tint-ok-line: color-mix(in oklab, #10b981 30%, transparent);
+
+  --tint-warn-bg: color-mix(in oklab, #f59e0b 15%, transparent);
+  --tint-warn-fg: #fcd34d;
+  --tint-warn-line: color-mix(in oklab, #f59e0b 30%, transparent);
+
+  --tint-danger-bg: color-mix(in oklab, #ef4444 15%, transparent);
+  --tint-danger-fg: #fca5a5;
+  --tint-danger-line: color-mix(in oklab, #ef4444 30%, transparent);
+
+  --tint-neutral-bg: #18181b;
+  --tint-neutral-fg: #a1a1aa;
+  --tint-neutral-line: #2a2a30;
+
+  /* On black, elevation reads through borders and glow rather than shadow. */
+  --app-shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --app-shadow-raised: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 16px 40px rgb(0 0 0 / 0.8);
+  --app-shadow-float: 0 24px 60px rgb(0 0 0 / 0.9);
+
+  --scroll-thumb: #2a2a30;
+  --scroll-thumb-hover: #3f3f46;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Anchor targets stop below the sticky header instead of under it. */
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums; /* figures keep their column across rows */
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Optical correction: the larger the type, the tighter it wants to be. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.021em;
+  }
+
+  h1 {
+    letter-spacing: -0.032em;
+  }
+
+  h2 {
+    letter-spacing: -0.026em;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::selection {
+    background: var(--app-ink);
+    color: var(--app-canvas);
+  }
+
+  /* Tailwind's reset leaves buttons on the default arrow; anything clickable gets the hand. */
+  button:not(:disabled),
+  [role='button'],
+  a[href],
+  label:has(input[type='checkbox']),
+  select,
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* A surface that sits on the canvas: hairline border plus a whisper of shadow. */
+@utility card {
+  @apply rounded-card border border-line bg-surface shadow-card;
+}
+
+/* Shared keyboard-focus treatment for interactive elements. */
+@utility focus-ring {
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+}
+
+@utility label-caps {
+  @apply text-[11px] font-semibold uppercase tracking-[0.1em] text-subtle;
+}
+
+/* Figures that sit in a column — stats, amounts, readings, codes. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Page gutters — one place to change how wide the content breathes. */
+@utility page-x {
+  @apply px-5 sm:px-7 xl:px-10 2xl:px-14;
+}
+
+@utility page-title {
+  @apply font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl;
+}
+
+/* Marketing-scale heading: big, tight, and still readable on a phone. */
+@utility display-title {
+  @apply font-display text-3xl font-bold text-ink sm:text-4xl;
+  letter-spacing: -0.03em;
+}
+
+/* Hairline grid behind heroes and panels. Pair with `fade-edges`. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--app-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--app-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Fades a backdrop out toward its edges, so it never ends in a hard line. */
+@utility fade-edges {
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 35%, #000 25%, transparent 100%);
+}
+
+/* ------------------------------------------------------------ motion --- */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility rise-in {
+  animation: rise-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Landing reveals: a slower, softer rise than the app's UI motion. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility reveal-up {
+  animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility reveal-scale {
+  animation: reveal-scale 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Chart columns growing out of the baseline. */
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@utility grow-up {
+  transform-origin: bottom;
+  animation: grow-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(16px) scale(0.97);
+  }
+}
+
+@utility toast-in {
+  animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility toast-out {
+  animation: toast-out 0.2s ease-in both;
+}
+
+/* Drives the time-remaining bar on a toast. */
+@keyframes toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
