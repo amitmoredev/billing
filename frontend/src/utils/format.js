@@ -24,5 +24,8 @@ export const isPdf = (mimeType) => mimeType === 'application/pdf';
 export const formatPhone = (phone) =>
   phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : '—';
 
+/** "Pune Plant 2 · PLT-02" — the one way a site is named in a list or dropdown. */
+export const siteLabel = (site) => (site ? [site.name, site.code].filter(Boolean).join(' · ') : '');
+
 /** A person's name, or their number when no name was given. */
 export const displayName = (user) => user?.name || formatPhone(user?.phone);

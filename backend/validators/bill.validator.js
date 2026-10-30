@@ -2,6 +2,10 @@ import { z } from 'zod';
 import { BILL_STATUS } from '../models/bill.model.js';
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const OBJECT_ID = /^[a-f\d]{24}$/i;
+
+/** List filter value meaning "bills with no site yet". */
+export const NO_SITE = 'none';
 
 // Form inputs arrive as strings; empty means "not filled", not zero.
 const blankToUndefined = (v) => {
@@ -39,13 +43,22 @@ export const parametersDraftSchema = z.object({
   currentBillMonth: optionalMonth,
 });
 
-// A bill without these cannot be reconciled against anything.
-const REQUIRED_ON_SUBMIT = ['customerNumber', 'consumerName', 'billMonth', 'kwhConsumption'];
+// Omitted = leave as is; blank or null = clear the site.
+const siteRef = z.preprocess(
+  (v) => (blankToUndefined(v) === undefined && v !== undefined ? null : v),
+  z.string().regex(OBJECT_ID, 'Pick a site').nullable().optional()
+);
 
-/** Final submit — same shape, but the identifying fields must be present. */
-export const parametersSubmitSchema = parametersDraftSchema.superRefine((data, ctx) => {
+/** Draft save body: the parameters plus the bill's site. */
+export const billDraftSchema = parametersDraftSchema.extend({ site: siteRef });
+
+// A bill without these cannot be reconciled against anything.
+const REQUIRED_ON_SUBMIT = ['site', 'customerNumber', 'consumerName', 'billMonth', 'kwhConsumption'];
+
+/** Final submit — same shape, but the site and identifying fields must be present. */
+export const billSubmitSchema = billDraftSchema.superRefine((data, ctx) => {
   for (const field of REQUIRED_ON_SUBMIT) {
-    if (data[field] === undefined) {
+    if (data[field] === undefined || data[field] === null) {
       ctx.addIssue({ code: 'custom', path: [field], message: 'Required' });
     }
   }
@@ -55,14 +68,24 @@ export const presignSchema = z.object({
   fileName: z.string().min(1).max(255),
   mimeType: z.string().min(1),
   size: z.coerce.number().int().positive(),
+  siteId: z.preprocess(blankToUndefined, z.string().regex(OBJECT_ID, 'Pick a site').optional()),
 });
+
+// A site id, or NO_SITE for unassigned bills.
+const siteFilter = z.preprocess(
+  blankToUndefined,
+  z.union([z.literal(NO_SITE), z.string().regex(OBJECT_ID, 'Invalid site id')]).optional()
+);
 
 export const listQuerySchema = z.object({
   status: z.enum([BILL_STATUS.PENDING_UPLOAD, BILL_STATUS.UPLOADED, BILL_STATUS.SUBMITTED]).optional(),
+  site: siteFilter,
   search: z.preprocess(blankToUndefined, z.string().max(200).optional()),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
+
+export const statsQuerySchema = z.object({ site: siteFilter });
 
 export const idParamSchema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid bill id'),

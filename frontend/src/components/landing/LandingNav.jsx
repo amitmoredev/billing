@@ -71,7 +71,7 @@ export default function LandingNav() {
   }, [menuOpen]);
 
   const ctaLabel = isAuthenticated ? 'Open dashboard' : 'Sign in';
-  const ctaTo = isAuthenticated ? '/bills' : '/login';
+  const ctaTo = isAuthenticated ? '/sites' : '/login';
 
   return (
     <header
@@ -103,7 +103,7 @@ export default function LandingNav() {
               className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition
                 ${
                   active === link.id
-                    ? 'bg-accent-soft text-ink'
+                    ? 'bg-accent-soft text-accent-fg'
                     : 'text-muted hover:bg-hover hover:text-ink'
                 }`}
             >
@@ -154,7 +154,7 @@ export default function LandingNav() {
           <Link to={ctaTo} onClick={() => setMenuOpen(false)} className="mt-3 block">
             <Button size="lg" className="w-full">
               {ctaLabel}
-              <ArrowRight className="size-4.5" />
+              <ArrowRight className="size-4" />
             </Button>
           </Link>
         </div>

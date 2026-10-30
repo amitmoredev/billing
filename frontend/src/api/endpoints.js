@@ -20,6 +20,13 @@ export const ENDPOINTS = {
     submitParameters: (id) => `/bills/${id}/parameters/submit`,
   },
 
+  sites: {
+    list: () => '/sites',
+    create: () => '/sites',
+    update: (id) => `/sites/${id}`,
+    remove: (id) => `/sites/${id}`,
+  },
+
   users: {
     list: () => '/admin/users',
     create: () => '/admin/users',

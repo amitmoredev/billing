@@ -12,6 +12,7 @@ export const ACTIONS = {
 export const SUBJECTS = {
   ALL: 'all',
   BILL: 'Bill',
+  SITE: 'Site',
   USER: 'User',
 };
 

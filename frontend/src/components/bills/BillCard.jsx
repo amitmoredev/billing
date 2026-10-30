@@ -6,6 +6,7 @@ import { formatBytes, formatDate, formatMonth, isPdf } from '../../utils/format.
 /**
  * Column template shared by the table header and every row, so they stay
  * aligned. Below the `@3xl` container width a row collapses to bill + status.
+ * Bills are always listed inside one site, so there is no site column.
  */
 export const BILL_ROW_GRID =
   'grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 @3xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_100px_110px_140px_16px]';
@@ -13,7 +14,7 @@ export const BILL_ROW_GRID =
 /** Rows past this index skip the entrance animation — long lists shouldn't ripple. */
 const ANIMATED_ROWS = 12;
 
-export default function BillCard({ bill, index = 0 }) {
+export default function BillCard({ bill, to, index = 0 }) {
   const { parameters = {}, file } = bill;
   const pdf = isPdf(file.mimeType);
   const FileIcon = pdf ? FileText : ImageIcon;
@@ -26,7 +27,7 @@ export default function BillCard({ bill, index = 0 }) {
 
   return (
     <Link
-      to={`/bills/${bill.id}`}
+      to={to}
       style={index < ANIMATED_ROWS ? { animationDelay: `${index * 35}ms` } : undefined}
       className={`focus-ring group relative grid px-5 py-3.5 transition hover:bg-hover lg:px-6
         ${index < ANIMATED_ROWS ? 'rise-in' : ''} ${BILL_ROW_GRID}`}
@@ -41,7 +42,7 @@ export default function BillCard({ bill, index = 0 }) {
       <div className="flex min-w-0 items-center gap-3.5">
         <span
           className={`grid size-10 shrink-0 place-items-center rounded-xl ring-1 ring-inset
-            ${pdf ? 'bg-danger-soft text-danger-fg ring-danger-line' : 'bg-accent-soft text-ink ring-accent-line'}`}
+            ${pdf ? 'bg-danger-soft text-danger-fg ring-danger-line' : 'bg-accent-soft text-accent-fg ring-accent-line'}`}
         >
           <FileIcon className="size-4.5" />
         </span>

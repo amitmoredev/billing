@@ -30,7 +30,7 @@ export default function Features() {
                   hover:border-line-strong hover:shadow-raised"
               >
                 <span
-                  className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-ink ring-1
+                  className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-fg ring-1
                     ring-inset ring-accent-line transition duration-300 group-hover:bg-accent group-hover:text-on-accent"
                 >
                   <Icon className="size-5" />

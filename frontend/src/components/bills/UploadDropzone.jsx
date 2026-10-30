@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
 import { CloudUpload, FileUp, Upload } from 'lucide-react';
 import { ACCEPTED_MIME_TYPES } from '../../constants/bill.constants.js';
+import { siteLabel } from '../../utils/format.js';
 
 /**
  * A slim drop strip above the bills table. While a file is in flight the
  * strip swaps its contents for a progress readout of the same height, so the
- * page never jumps; the outcome is reported by a toast.
+ * page never jumps; the outcome is reported by a toast. With a `site`, the
+ * strip says that new bills are filed under it.
  */
-export default function UploadDropzone({ onFiles, current }) {
+export default function UploadDropzone({ onFiles, current, site }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
@@ -45,7 +47,7 @@ export default function UploadDropzone({ onFiles, current }) {
           ${
             dragging
               ? 'scale-110 bg-accent text-on-accent'
-              : 'bg-accent-soft text-ink ring-1 ring-inset ring-accent-line group-hover:scale-105'
+              : 'bg-accent-soft text-accent-fg ring-1 ring-inset ring-accent-line group-hover:scale-105'
           }`}
       >
         <CloudUpload className="size-6" />
@@ -63,7 +65,16 @@ export default function UploadDropzone({ onFiles, current }) {
             </>
           )}
         </p>
-        <p className="mt-0.5 text-sm text-subtle">PDF, JPG, PNG or WEBP · up to 20 MB each</p>
+        <p className="mt-0.5 truncate text-sm text-subtle">
+          {site ? (
+            <>
+              Filed under <span className="font-semibold text-ink">{siteLabel(site)}</span> · PDF, JPG, PNG or
+              WEBP
+            </>
+          ) : (
+            'PDF, JPG, PNG or WEBP · up to 20 MB each'
+          )}
+        </p>
       </div>
 
       <span
@@ -96,7 +107,7 @@ function UploadProgress({ current }) {
       aria-live="polite"
     >
       <div className="flex min-w-0 items-center gap-4 sm:w-80">
-        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-ink ring-1 ring-inset ring-accent-line">
+        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent-fg ring-1 ring-inset ring-accent-line">
           <FileUp className="size-6 animate-pulse" />
         </span>
         <div className="min-w-0">

@@ -3,9 +3,13 @@ import { ThemeContext } from './theme.context.js';
 
 const STORAGE_KEY = 'ui:theme';
 
-/** Dark unless the user has chosen light. Keep in sync with the script in index.html. */
+/** Light unless the user has chosen dark. Keep in sync with the script in index.html. */
 function readInitialTheme() {
-  return window.localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light'; // storage blocked (private mode, strict settings)
+  }
 }
 
 export function ThemeProvider({ children }) {
@@ -16,12 +20,16 @@ export function ThemeProvider({ children }) {
     document.documentElement.dataset.theme = theme;
 
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#000000' : '#f6f6f7');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#070b16' : '#f8fafc');
   }, [theme]);
 
   // Only an explicit choice is remembered, so the default can change later.
   const setTheme = useCallback((next) => {
-    window.localStorage.setItem(STORAGE_KEY, next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Not remembered across visits, but the switch still applies now.
+    }
     setThemeState(next);
   }, []);
 

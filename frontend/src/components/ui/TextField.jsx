@@ -17,7 +17,7 @@ export default function TextField({ label, unit, hint, error, required, classNam
             placeholder:font-sans placeholder:text-subtle hover:ring-line-strong focus:outline-none focus:ring-2
             ${isFigure ? 'num' : ''}
             ${unit ? 'pr-16' : ''}
-            ${error ? 'ring-danger-line focus:ring-red-400' : 'ring-line focus:ring-ink'}`}
+            ${error ? 'ring-danger-line focus:ring-red-400' : 'ring-line focus:ring-accent focus:shadow-focus'}`}
         />
         {unit && (
           <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-semibold text-subtle">

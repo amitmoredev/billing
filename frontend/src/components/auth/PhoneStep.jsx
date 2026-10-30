@@ -34,7 +34,7 @@ export default function PhoneStep({
 
         <div
           className="flex h-13 items-center rounded-xl bg-surface ring-1 ring-line transition
-            focus-within:ring-2 focus-within:ring-ink hover:ring-line-strong"
+            focus-within:ring-2 focus-within:ring-accent focus-within:shadow-focus hover:ring-line-strong"
         >
           <span className="grid h-full place-items-center border-r border-line px-3.5 text-sm font-semibold text-muted">
             +91
@@ -63,7 +63,7 @@ export default function PhoneStep({
         className="mt-6 w-full"
       >
         Send code
-        {!loading && <ArrowRight className="size-4.5" />}
+        {!loading && <ArrowRight className="size-4" />}
       </Button>
 
       {note && <p className="mt-5 text-center text-xs text-subtle">{note}</p>}

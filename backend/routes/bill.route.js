@@ -4,11 +4,12 @@ import { authorize, requireAuth } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import { ACTIONS, SUBJECTS } from '../policies/permissions.js';
 import {
+  billDraftSchema,
+  billSubmitSchema,
   idParamSchema,
   listQuerySchema,
-  parametersDraftSchema,
-  parametersSubmitSchema,
   presignSchema,
+  statsQuerySchema,
 } from '../validators/bill.validator.js';
 
 const router = Router();
@@ -17,7 +18,12 @@ const allow = (action) => authorize(action, SUBJECTS.BILL);
 // Nothing about bills is public.
 router.use(requireAuth);
 
-router.get('/stats', allow(ACTIONS.READ), billController.getStats);
+router.get(
+  '/stats',
+  allow(ACTIONS.READ),
+  validate(statsQuerySchema, 'query'),
+  billController.getStats
+);
 
 // Upload flow: presign -> browser PUTs to R2 -> confirm.
 router.post(
@@ -41,14 +47,14 @@ router.patch(
   '/:id/parameters',
   allow(ACTIONS.UPDATE),
   validate(idParamSchema, 'params'),
-  validate(parametersDraftSchema),
+  validate(billDraftSchema),
   billController.saveParameters
 );
 router.post(
   '/:id/parameters/submit',
   allow(ACTIONS.UPDATE),
   validate(idParamSchema, 'params'),
-  validate(parametersSubmitSchema),
+  validate(billSubmitSchema),
   billController.submitParameters
 );
 

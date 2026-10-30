@@ -40,6 +40,8 @@ const fileSchema = new mongoose.Schema(
 const billSchema = new mongoose.Schema(
   {
     file: { type: fileSchema, required: true },
+    // Which site the bill belongs to. Picked by hand; null until someone does.
+    site: { type: mongoose.Schema.Types.ObjectId, ref: 'Site', default: null },
     status: {
       type: String,
       enum: Object.values(BILL_STATUS),
@@ -66,6 +68,8 @@ const billSchema = new mongoose.Schema(
 
 // List view: newest-first within a status filter.
 billSchema.index({ status: 1, createdAt: -1 });
+// Same list narrowed to one site; also serves "bills at this site" counts.
+billSchema.index({ site: 1, status: 1, createdAt: -1 });
 // Lookups by the fields users actually search on.
 billSchema.index({ 'parameters.customerNumber': 1 });
 billSchema.index({ 'parameters.consumerName': 'text', 'file.originalName': 'text' });

@@ -20,10 +20,11 @@ export default function Sidebar({ nav, collapsed = false, onToggle, onClose }) {
           collapsed ? 'justify-center px-3' : 'px-5'
         }`}
       >
+        {/* Words only, no logo tile. Collapsed, the short name alone fits the narrow rail. */}
         <BrandMark
-          showName={!collapsed}
-          showTagline
-          subtitle={nav.subtitle}
+          showLogo={false}
+          showTagline={!collapsed}
+          subtitle={collapsed ? null : nav.subtitle}
           className={collapsed ? '' : 'flex-1'}
         />
 
@@ -103,21 +104,20 @@ function NavItem({ item, collapsed, onNavigate }) {
       title={collapsed ? item.label : undefined}
       aria-label={collapsed ? item.label : undefined}
       className={({ isActive }) =>
-        `focus-ring group relative flex h-11 items-center rounded-xl text-sm font-semibold transition
+        `focus-ring group relative flex h-11 items-center rounded-xl text-sm font-semibold transition duration-200
         ${collapsed ? 'justify-center' : 'gap-3 px-3'}
-        ${isActive ? 'bg-accent-soft text-ink' : 'text-muted hover:bg-hover hover:text-ink'}`
+        ${
+          isActive
+            ? 'bg-linear-to-br from-accent to-accent-hover text-on-accent shadow-accent'
+            : 'text-muted hover:bg-hover hover:text-ink'
+        }`
       }
     >
       {({ isActive }) => (
         <>
-          {/* Active marker, inset inside the item so it can't overflow the rail. */}
-          <span
-            className={`absolute left-0 top-1/2 h-5 w-0.75 -translate-y-1/2 rounded-r-full bg-accent transition-opacity
-              ${isActive ? 'opacity-100' : 'opacity-0'}`}
-          />
           <IconComponent
             className={`size-5 shrink-0 transition ${
-              isActive ? 'text-ink' : 'text-subtle group-hover:text-ink'
+              isActive ? 'text-on-accent' : 'text-subtle group-hover:text-ink'
             }`}
           />
           {!collapsed && <span className="truncate">{item.label}</span>}

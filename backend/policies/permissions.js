@@ -2,11 +2,13 @@ import { ROLES } from '../models/user.model.js';
 
 /**
  * Who may do what. This file is the only place a role turns into a permission;
- * routes ask `can(user, action, subject)` and never compare roles themselves.
+ * callers ask `can(user, action, subject, record?)` and never compare roles
+ * themselves.
  *
  * Rules are shaped like CASL's (an action on a subject, `manage` = any action,
- * `all` = any subject). Once rules need conditions, e.g. "clients see only
- * their own bills", swap this file for @casl/ability; callers stay the same.
+ * `all` = any subject). One condition exists: `own: true` limits a rule to
+ * records whose `createdBy` is the user. If conditions grow beyond that, swap
+ * this file for @casl/ability; callers stay the same.
  */
 
 export const ACTIONS = {
@@ -20,12 +22,20 @@ export const ACTIONS = {
 export const SUBJECTS = {
   ALL: 'all',
   BILL: 'Bill',
+  SITE: 'Site',
   USER: 'User',
 };
 
 const RULES_BY_ROLE = {
   [ROLES.ADMIN]: [{ action: ACTIONS.MANAGE, subject: SUBJECTS.ALL }],
-  [ROLES.CLIENT]: [{ action: ACTIONS.MANAGE, subject: SUBJECTS.BILL }],
+  [ROLES.CLIENT]: [
+    { action: ACTIONS.MANAGE, subject: SUBJECTS.BILL },
+    // Every site is visible and can take bills; only its creator may change or remove it.
+    { action: ACTIONS.READ, subject: SUBJECTS.SITE },
+    { action: ACTIONS.CREATE, subject: SUBJECTS.SITE },
+    { action: ACTIONS.UPDATE, subject: SUBJECTS.SITE, own: true },
+    { action: ACTIONS.DELETE, subject: SUBJECTS.SITE, own: true },
+  ],
 };
 
 /**
@@ -39,9 +49,22 @@ export const SIGN_IN_SCOPES = {
 /** Plain-data rules for one account. Sent to the browser so the UI asks the same question. */
 export const rulesFor = (user) => RULES_BY_ROLE[user?.role] ?? [];
 
-export const can = (user, action, subject) =>
+// `createdBy` may be a raw id or a populated { id } / { _id }.
+const ownerId = (record) => {
+  const owner = record?.createdBy;
+  return owner ? String(owner._id ?? owner.id ?? owner) : null;
+};
+
+/**
+ * Without `record` this answers "may the user do this to any such thing?" — an
+ * `own` rule counts — which is what route guards ask. With `record`, an `own`
+ * rule only counts if the user created it; services ask that once they have
+ * loaded the record.
+ */
+export const can = (user, action, subject, record) =>
   rulesFor(user).some(
     (rule) =>
       (rule.action === ACTIONS.MANAGE || rule.action === action) &&
-      (rule.subject === SUBJECTS.ALL || rule.subject === subject)
+      (rule.subject === SUBJECTS.ALL || rule.subject === subject) &&
+      (!rule.own || record === undefined || ownerId(record) === String(user._id ?? user.id))
   );

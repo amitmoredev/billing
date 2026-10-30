@@ -2,14 +2,20 @@ import { useMemo, useState } from 'react';
 import { PARAMETER_FIELDS } from '../constants/bill.constants.js';
 import { useSaveParameters, useSubmitParameters } from '../queries/bill.query.js';
 
-const toFormValues = (parameters = {}) =>
-  Object.fromEntries(
-    PARAMETER_FIELDS.map((field) => [field.name, parameters[field.name] ?? ''])
-  );
+// The bill's site travels with its parameters: one form, one save.
+const FORM_FIELDS = [{ name: 'site', required: true }, ...PARAMETER_FIELDS];
+
+const toFormValues = (parameters = {}, site = null) => ({
+  site: site?.id ?? '',
+  ...Object.fromEntries(PARAMETER_FIELDS.map((field) => [field.name, parameters[field.name] ?? ''])),
+});
 
 /** Owns parameter form state and both write paths (draft save, final submit). */
 export const useParameterForm = (bill) => {
-  const initial = useMemo(() => toFormValues(bill?.parameters), [bill?.parameters]);
+  const initial = useMemo(
+    () => toFormValues(bill?.parameters, bill?.site),
+    [bill?.parameters, bill?.site]
+  );
   const [values, setValues] = useState(initial);
   const [initialSnapshot, setInitialSnapshot] = useState(initial);
   const [errors, setErrors] = useState({});
@@ -31,15 +37,15 @@ export const useParameterForm = (bill) => {
     setErrors((prev) => (prev[name] ? { ...prev, [name]: undefined } : prev));
   };
 
-  const isDirty = PARAMETER_FIELDS.some(
+  const isDirty = FORM_FIELDS.some(
     (field) => String(values[field.name] ?? '') !== String(initialSnapshot[field.name] ?? '')
   );
 
   const validateRequired = () => {
     const missing = {};
-    for (const field of PARAMETER_FIELDS) {
+    for (const field of FORM_FIELDS) {
       if (field.required && String(values[field.name] ?? '').trim() === '') {
-        missing[field.name] = 'Required';
+        missing[field.name] = field.name === 'site' ? 'Pick the site this bill belongs to' : 'Required';
       }
     }
     setErrors(missing);
@@ -49,7 +55,7 @@ export const useParameterForm = (bill) => {
   const run = async (mutation) => {
     try {
       const updated = await mutation.mutateAsync(values);
-      setInitialSnapshot(toFormValues(updated.parameters));
+      setInitialSnapshot(toFormValues(updated.parameters, updated.site));
       setErrors({});
       return true;
     } catch (err) {

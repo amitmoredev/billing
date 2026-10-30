@@ -1,14 +1,24 @@
+import mongoose from 'mongoose';
 import { Bill } from '../models/bill.model.js';
 import { escapeRegex } from '../utils/regex.js';
 
 // Data layer: Mongo queries only. No business rules, no HTTP concepts.
 
+// What a bill carries of its site: enough to label it, nothing more.
+const SITE_FIELDS = 'name code discom';
+
+// `site: null` matches bills with no site, so callers pass null for "unassigned".
+const siteMatch = (site) => (site === undefined ? {} : { site });
+
 export const create = (payload) => Bill.create(payload);
 
 export const findById = (id) => Bill.findById(id);
 
-export const findMany = async ({ status, search, page, limit }) => {
-  const filter = {};
+/** Fills in `bill.site` with the site's name and code. */
+export const populateSite = (bill) => bill.populate('site', SITE_FIELDS);
+
+export const findMany = async ({ status, site, search, page, limit }) => {
+  const filter = { ...siteMatch(site) };
   if (status) filter.status = status;
   if (search) {
     const rx = new RegExp(escapeRegex(search), 'i');
@@ -24,6 +34,7 @@ export const findMany = async ({ status, search, page, limit }) => {
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
+      .populate('site', SITE_FIELDS)
       .lean(),
     Bill.countDocuments(filter),
   ]);
@@ -36,5 +47,9 @@ export const updateById = (id, update) =>
 
 export const deleteById = (id) => Bill.findByIdAndDelete(id);
 
-export const countByStatus = () =>
-  Bill.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
+// Unlike find(), aggregate() never casts, so a string id would match nothing.
+export const countByStatus = ({ site } = {}) =>
+  Bill.aggregate([
+    { $match: siteMatch(site ? new mongoose.Types.ObjectId(site) : site) },
+    { $group: { _id: '$status', count: { $sum: 1 } } },
+  ]);

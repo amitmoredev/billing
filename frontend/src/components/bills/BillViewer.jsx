@@ -16,7 +16,7 @@ export default function BillViewer({ file, fileUrl }) {
   return (
     <div
       className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-card border border-line
-        bg-zinc-900 shadow-raised dark:bg-black"
+        bg-slate-800 shadow-raised dark:bg-sunken"
     >
       <div className="flex-1 overflow-auto p-4">
         {pdf ? (

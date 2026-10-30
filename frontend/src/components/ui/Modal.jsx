@@ -21,7 +21,7 @@ export default function Modal({ title, description, onClose, children }) {
         tabIndex={-1}
         aria-label="Close dialog"
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fadein fixed inset-0 bg-backdrop backdrop-blur-sm"
       />
 
       <div

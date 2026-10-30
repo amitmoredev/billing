@@ -23,15 +23,19 @@ export default function BillFilters({ status, search, counts, onChange }) {
               type="button"
               onClick={() => onChange({ status: tab.value })}
               aria-pressed={active}
-              className={`focus-ring flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                active ? 'bg-accent text-on-accent shadow-card' : 'text-muted hover:text-ink'
-              }`}
+              // Segmented control: the active tab is a raised white chip on the sunken track.
+              className={`focus-ring flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm
+                font-semibold transition duration-200 ${
+                  active
+                    ? 'bg-surface text-accent-fg shadow-card ring-1 ring-line'
+                    : 'text-muted hover:text-ink'
+                }`}
             >
               {tab.label}
               {counts && (
                 <span
-                  className={`num rounded-md px-1.5 text-xs ${
-                    active ? 'bg-on-accent/15' : 'bg-surface ring-1 ring-inset ring-line'
+                  className={`num rounded-md px-1.5 text-xs transition ${
+                    active ? 'bg-accent-soft text-accent-fg' : 'bg-surface ring-1 ring-inset ring-line'
                   }`}
                 >
                   {counts[tab.countKey] ?? 0}

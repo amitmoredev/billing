@@ -58,7 +58,7 @@ export default function Hero() {
           </Reveal>
 
           <Reveal delay={240} className="mt-9 flex flex-wrap gap-3">
-            <Link to={isAuthenticated ? '/bills' : '/login'}>
+            <Link to={isAuthenticated ? '/sites' : '/login'}>
               <Button size="lg" className="group">
                 {isAuthenticated ? 'Open dashboard' : 'Sign in'}
                 <ArrowRight className="size-4.5 transition-transform group-hover:translate-x-0.5" />

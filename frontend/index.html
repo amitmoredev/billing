@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#f8fafc" />
     <title>EIP — Energy Intelligence Platform</title>
     <meta
       name="description"
@@ -12,25 +12,25 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Geist for everything, Geist Mono for figures that need to line up. -->
+    <!-- Inter for everything. The opsz axis lets headings tighten on their own;
+         Inter's hinting keeps small text crisp on Windows too. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&display=swap"
       rel="stylesheet"
     />
     <script>
       // Apply the theme before first paint so the page never flashes the wrong one.
-      // Dark by default; light only if the user picked it (see ThemeContext).
+      // Light by default; dark only if the user picked it (see ThemeContext).
       (function () {
-        var light = false;
+        var dark = false;
         try {
-          light = localStorage.getItem('ui:theme') === 'light';
+          dark = localStorage.getItem('ui:theme') === 'dark';
         } catch (e) {}
-        if (light) {
+        if (dark) {
+          document.documentElement.classList.add('dark');
           document
             .querySelector('meta[name="theme-color"]')
-            .setAttribute('content', '#f6f6f7');
-        } else {
-          document.documentElement.classList.add('dark');
+            .setAttribute('content', '#070b16');
         }
       })();
     </script>

@@ -9,7 +9,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const redirectTo = location.state?.from?.pathname || '/bills';
+  const redirectTo = location.state?.from?.pathname || '/sites';
 
   return (
     <div className="grid min-h-full bg-canvas lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">

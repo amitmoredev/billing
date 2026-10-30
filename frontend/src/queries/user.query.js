@@ -14,12 +14,16 @@ export const useUsers = (params) =>
     placeholderData: (prev) => prev, // no flicker while searching or paging
   });
 
-// Any change can shift rows between pages, so every list refetches.
+// Any change can shift rows between pages, so every list refetches — in the
+// background. Returning the promise would hold the mutation (and its spinner)
+// pending until the refetch finished.
 const useUserMutation = (mutationFn) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
+    },
   });
 };
 

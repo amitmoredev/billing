@@ -219,7 +219,7 @@ function Footer({ shown, pagination, onPageChange }) {
           onClick={() => onPageChange(page + 1)}
         >
           Next
-          <ChevronRight className="size-4.5" />
+          <ChevronRight className="size-4" />
         </Button>
       </div>
       )}

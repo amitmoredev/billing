@@ -57,7 +57,7 @@ export default function OtpInput({ value, onChange, onComplete, disabled, invali
           onFocus={(event) => event.target.select()}
           className={`num h-14 w-full min-w-0 rounded-xl bg-surface text-center text-xl font-semibold
             text-ink ring-1 transition focus:outline-none focus:ring-2 disabled:opacity-50
-            ${invalid ? 'ring-danger-line focus:ring-red-400' : 'ring-line focus:ring-ink'}`}
+            ${invalid ? 'ring-danger-line focus:ring-red-400' : 'ring-line focus:ring-accent focus:shadow-focus'}`}
         />
       ))}
     </div>

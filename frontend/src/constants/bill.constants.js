@@ -10,6 +10,9 @@ export const STATUS_LABELS = {
   [BILL_STATUS.SUBMITTED]: 'Verified',
 };
 
+/** Site filter value for bills not yet filed under a site (the API's NO_SITE). */
+export const NO_SITE = 'none';
+
 export const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 

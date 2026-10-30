@@ -4,12 +4,26 @@ import RequireAuth from './components/auth/RequireAuth.jsx';
 import RedirectIfAuthed from './components/auth/RedirectIfAuthed.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
-import BillsPage from './pages/BillsPage.jsx';
-import BillDetailPage from './pages/BillDetailPage.jsx';
+import SitesPage from './pages/SitesPage.jsx';
+import SiteDetailPage from './pages/SiteDetailPage.jsx';
+import BillDetailPage, { LegacyBillRedirect } from './pages/BillDetailPage.jsx';
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx';
 import UsersPage from './pages/admin/UsersPage.jsx';
 import { ADMIN_CONSOLE } from './constants/permission.constants.js';
 import { ADMIN_NAV, APP_NAV } from './constants/navigation.constants.js';
+
+/**
+ * Sites & Bills: sites -> one site -> one bill. Mounted in the dashboard and
+ * again in the admin console; pages build their links with useSitePaths, so
+ * each stays inside whichever area it was opened from.
+ */
+const siteRoutes = (
+  <>
+    <Route index element={<SitesPage />} />
+    <Route path=":siteId" element={<SiteDetailPage />} />
+    <Route path=":siteId/bills/:billId" element={<BillDetailPage />} />
+  </>
+);
 
 export default function App() {
   return (
@@ -23,8 +37,10 @@ export default function App() {
       {/* Dashboard */}
       <Route element={<RequireAuth />}>
         <Route element={<DashboardLayout nav={APP_NAV} />}>
-          <Route path="bills" element={<BillsPage />} />
-          <Route path="bills/:id" element={<BillDetailPage />} />
+          <Route path="sites">{siteRoutes}</Route>
+          {/* Bills used to live at /bills; old links and bookmarks still land somewhere sensible. */}
+          <Route path="bills" element={<Navigate to="/sites" replace />} />
+          <Route path="bills/:billId" element={<LegacyBillRedirect />} />
         </Route>
       </Route>
 
@@ -42,6 +58,7 @@ export default function App() {
           <Route element={<DashboardLayout nav={ADMIN_NAV} />}>
             <Route index element={<Navigate to="users" replace />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="sites">{siteRoutes}</Route>
           </Route>
         </Route>
       </Route>

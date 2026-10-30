@@ -21,7 +21,7 @@ export default function ClosingCta() {
           </h2>
           <p className="mt-3 opacity-70">Access is by invitation from your administrator.</p>
 
-          <Link to={isAuthenticated ? '/bills' : '/login'} className="mt-8 inline-block">
+          <Link to={isAuthenticated ? '/sites' : '/login'} className="mt-8 inline-block">
             <Button size="lg" variant="secondary" className="group">
               {isAuthenticated ? 'Open dashboard' : 'Sign in'}
               <ArrowRight className="size-4.5 transition-transform group-hover:translate-x-0.5" />

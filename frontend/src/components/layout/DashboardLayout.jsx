@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar.jsx';
 import BrandMark from '../ui/BrandMark.jsx';
@@ -15,6 +15,7 @@ export default function DashboardLayout({ nav }) {
     () => window.localStorage.getItem(STORAGE_KEY) === '1'
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
@@ -41,7 +42,7 @@ export default function DashboardLayout({ nav }) {
           <button
             aria-label="Close menu"
             onClick={() => setMobileOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-backdrop backdrop-blur-sm"
           />
           <div className="absolute inset-y-0 left-0 shadow-float">
             <Sidebar nav={nav} onClose={() => setMobileOpen(false)} />
@@ -65,8 +66,11 @@ export default function DashboardLayout({ nav }) {
           <BrandMark size="sm" subtitle={nav.subtitle} />
         </header>
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-          <Outlet />
+        <main className="app-backdrop min-h-0 min-w-0 flex-1 overflow-y-auto">
+          {/* Keyed by path, so each new page plays its fade-in. */}
+          <div key={pathname} className="page-in h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

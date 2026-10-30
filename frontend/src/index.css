@@ -16,14 +16,15 @@
  */
 @theme {
   /*
-   * One family, used with intent: Geist for all UI text, its mono cut for
-   * figures that have to line up in a column. Headings differ by weight and
-   * tracking rather than by typeface, which keeps the pages looking like one
-   * product instead of a pairing exercise.
+   * One family, used with intent: Inter for all UI text, with its tabular
+   * figures for numbers that have to line up in a column. Headings differ by
+   * weight, tracking and Inter's optical size rather than by typeface, which
+   * keeps the pages looking like one product instead of a pairing exercise.
+   * (Geist was dropped: it rendered thin and jagged on Windows.)
    */
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Menlo', monospace;
 
   /* Type scale — a notch larger than Tailwind's default throughout. */
   --text-xs: 0.8125rem;
@@ -43,7 +44,7 @@
   --text-4xl: 2.625rem;
   --text-4xl--line-height: 3rem;
 
-  /* Greyscale ramp — inverts in dark so `brand-500` is always "the accent". */
+  /* Accent ramp — blue in light, greyscale in dark; `brand-500` is always "the accent". */
   --color-brand-50: var(--ramp-50);
   --color-brand-100: var(--ramp-100);
   --color-brand-200: var(--ramp-200);
@@ -100,43 +101,57 @@
   --shadow-card: var(--app-shadow-card);
   --shadow-raised: var(--app-shadow-raised);
   --shadow-float: var(--app-shadow-float);
+  /* A primary button's lift: a coloured glow in light, nothing extra in dark. */
+  --shadow-accent: var(--app-shadow-accent);
+  /* Soft halo around a focused field, outside its ring. */
+  --shadow-focus: var(--app-shadow-focus);
+
+  /* Behind dialogs and the mobile drawer. */
+  --color-backdrop: var(--app-backdrop);
 
   --radius-card: 1rem;
 }
 
 /* ---------------------------------------------------------------- light --- */
+/*
+ * Light is the working theme: white surfaces, cool slate greys, and one blue
+ * accent — the colour of utilities and finance, and one that no status uses
+ * (green / amber / red keep meaning verified / pending / penalty).
+ */
 :root {
-  --ramp-50: #fafafa;
-  --ramp-100: #f4f4f5;
-  --ramp-200: #e4e4e7;
-  --ramp-300: #d4d4d8;
-  --ramp-400: #a1a1aa;
-  --ramp-500: #18181b;
-  --ramp-600: #27272a;
-  --ramp-700: #3f3f46;
-  --ramp-800: #52525b;
-  --ramp-900: #71717a;
+  /* Blue ramp — chart columns, quiet fills. */
+  --ramp-50: #eff6ff;
+  --ramp-100: #dbeafe;
+  --ramp-200: #bfdbfe;
+  --ramp-300: #93c5fd;
+  --ramp-400: #60a5fa;
+  --ramp-500: #2563eb;
+  --ramp-600: #1d4ed8;
+  --ramp-700: #1e40af;
+  --ramp-800: #1e3a8a;
+  --ramp-900: #172554;
 
-  --app-accent: #18181b;
-  --app-accent-hover: #000000;
+  /* A slightly muted blue: confident, not neon. */
+  --app-accent: #3060c8;
+  --app-accent-hover: #2851ad;
   --app-on-accent: #ffffff;
 
-  --app-canvas: #f6f6f7;
+  --app-canvas: #f8fafc;
   --app-surface: #ffffff;
-  --app-sunken: #fafafa;
+  --app-sunken: #f8fafc;
   --app-elevated: #ffffff;
-  --app-hover: #f4f4f5;
+  --app-hover: #f1f5f9;
 
-  --app-ink: #09090b;
-  --app-muted: #52525b;
-  --app-subtle: #9b9ba4;
+  --app-ink: #0f172a;
+  --app-muted: #475569;
+  --app-subtle: #94a3b8;
 
-  --app-line: #e8e8ec;
-  --app-line-strong: #d4d4d8;
+  --app-line: #e2e8f0;
+  --app-line-strong: #cbd5e1;
 
-  --tint-accent-bg: #f4f4f5;
-  --tint-accent-fg: #18181b;
-  --tint-accent-line: #e4e4e7;
+  --tint-accent-bg: #eff6ff;
+  --tint-accent-fg: #1d4ed8;
+  --tint-accent-line: #bfdbfe;
 
   --tint-ok-bg: #ecfdf5;
   --tint-ok-fg: #047857;
@@ -150,53 +165,68 @@
   --tint-danger-fg: #b91c1c;
   --tint-danger-line: #fecaca;
 
-  --tint-neutral-bg: #f4f4f5;
-  --tint-neutral-fg: #52525b;
-  --tint-neutral-line: #e4e4e7;
+  --tint-neutral-bg: #f1f5f9;
+  --tint-neutral-fg: #475569;
+  --tint-neutral-line: #e2e8f0;
 
-  --app-shadow-card: 0 1px 2px rgb(9 9 11 / 0.05), 0 1px 3px rgb(9 9 11 / 0.04);
-  --app-shadow-raised: 0 1px 2px rgb(9 9 11 / 0.06), 0 12px 28px rgb(9 9 11 / 0.08);
-  --app-shadow-float: 0 18px 44px rgb(9 9 11 / 0.16);
+  /* Slate-tinted, so shadows sit with the cool greys instead of looking muddy. */
+  --app-shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 3px rgb(15 23 42 / 0.04);
+  --app-shadow-raised: 0 1px 2px rgb(15 23 42 / 0.06), 0 12px 28px rgb(15 23 42 / 0.08);
+  --app-shadow-float: 0 18px 44px rgb(15 23 42 / 0.16);
+  --app-shadow-accent: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(40 81 173 / 0.25),
+    0 4px 12px -4px rgb(48 96 200 / 0.3);
+  --app-shadow-focus: 0 0 0 4px rgb(48 96 200 / 0.13);
 
-  --scroll-thumb: #d4d4d8;
-  --scroll-thumb-hover: #a1a1aa;
+  --app-backdrop: rgb(15 23 42 / 0.4);
+  /* A faint blue wash at the top of every signed-in page. */
+  --app-glow: rgb(37 99 235 / 0.07);
+
+  --scroll-thumb: #cbd5e1;
+  --scroll-thumb-hover: #94a3b8;
 
   color-scheme: light;
 }
 
-/* ------------------------------------------------------------ true black --- */
+/* ------------------------------------------------------------- midnight --- */
+/*
+ * Dark is deep navy rather than pure black — easier on the eyes, and the same
+ * blue accent as light reads as one product. Surfaces step up in lightness
+ * (canvas -> surface -> elevated) so depth shows without heavy shadows.
+ */
 .dark {
-  --ramp-50: #131316;
-  --ramp-100: #1c1c20;
-  --ramp-200: #2a2a30;
-  --ramp-300: #3f3f46;
-  --ramp-400: #71717a;
-  --ramp-500: #fafafa;
-  --ramp-600: #e4e4e7;
-  --ramp-700: #d4d4d8;
-  --ramp-800: #a1a1aa;
-  --ramp-900: #8b8b93;
+  /* Blue ramp, dimmed — chart columns sit back, the accent stands out. */
+  --ramp-50: #0b1736;
+  --ramp-100: #10214a;
+  --ramp-200: #172c5e;
+  --ramp-300: #1e3a8a;
+  --ramp-400: #1d4ed8;
+  --ramp-500: #3b82f6;
+  --ramp-600: #60a5fa;
+  --ramp-700: #93c5fd;
+  --ramp-800: #bfdbfe;
+  --ramp-900: #dbeafe;
 
-  --app-accent: #fafafa;
-  --app-accent-hover: #ffffff;
-  --app-on-accent: #09090b;
+  /* A calmer, slightly muted blue: bright blue on navy glares. */
+  --app-accent: #2f5bc4;
+  --app-accent-hover: #3866d1;
+  --app-on-accent: #eef2fb;
 
-  --app-canvas: #000000;
-  --app-surface: #0a0a0b;
-  --app-sunken: #0f0f11;
-  --app-elevated: #141417;
-  --app-hover: #1a1a1e;
+  --app-canvas: #070b16;
+  --app-surface: #0d1424;
+  --app-sunken: #0a1020;
+  --app-elevated: #131c30;
+  --app-hover: #16203a;
 
-  --app-ink: #fafafa;
-  --app-muted: #a1a1aa;
-  --app-subtle: #6e6e78;
+  --app-ink: #f1f5f9;
+  --app-muted: #a3b1c6;
+  --app-subtle: #67768f;
 
-  --app-line: #1f1f23;
-  --app-line-strong: #2e2e34;
+  --app-line: #1b2539;
+  --app-line-strong: #2a3650;
 
-  --tint-accent-bg: #1a1a1e;
-  --tint-accent-fg: #fafafa;
-  --tint-accent-line: #2e2e34;
+  --tint-accent-bg: color-mix(in oklab, #3b82f6 12%, transparent);
+  --tint-accent-fg: #a5bfee;
+  --tint-accent-line: color-mix(in oklab, #3b82f6 26%, transparent);
 
   --tint-ok-bg: color-mix(in oklab, #10b981 15%, transparent);
   --tint-ok-fg: #6ee7b7;
@@ -210,17 +240,23 @@
   --tint-danger-fg: #fca5a5;
   --tint-danger-line: color-mix(in oklab, #ef4444 30%, transparent);
 
-  --tint-neutral-bg: #18181b;
-  --tint-neutral-fg: #a1a1aa;
-  --tint-neutral-line: #2a2a30;
+  --tint-neutral-bg: #131c30;
+  --tint-neutral-fg: #a3b1c6;
+  --tint-neutral-line: #2a3650;
 
-  /* On black, elevation reads through borders and glow rather than shadow. */
-  --app-shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
-  --app-shadow-raised: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 16px 40px rgb(0 0 0 / 0.8);
-  --app-shadow-float: 0 24px 60px rgb(0 0 0 / 0.9);
+  /* On navy, elevation reads through a top highlight and deep shadow. */
+  --app-shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 1px 2px rgb(0 0 0 / 0.3);
+  --app-shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 16px 40px rgb(0 0 0 / 0.5);
+  --app-shadow-float: 0 24px 60px rgb(0 0 0 / 0.6);
+  /* No coloured glow in dark — just a fine top highlight, so buttons stay calm. */
+  --app-shadow-accent: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 1px 2px rgb(0 0 0 / 0.4);
+  --app-shadow-focus: 0 0 0 4px rgb(59 130 246 / 0.16);
 
-  --scroll-thumb: #2a2a30;
-  --scroll-thumb-hover: #3f3f46;
+  --app-backdrop: rgb(2 6 18 / 0.7);
+  --app-glow: rgb(59 130 246 / 0.06);
+
+  --scroll-thumb: #2a3650;
+  --scroll-thumb-hover: #3b4a68;
 
   color-scheme: dark;
 }
@@ -244,7 +280,11 @@
   body {
     @apply bg-canvas text-ink antialiased;
     font-family: var(--font-sans);
+    font-optical-sizing: auto;
     font-variant-numeric: tabular-nums; /* figures keep their column across rows */
+    /* Inter alternates — a tailed l and a serifed I — so 1, l and I never blur
+       together in customer numbers and site codes. */
+    font-feature-settings: 'cv05', 'cv08';
     text-rendering: optimizeLegibility;
   }
 
@@ -326,11 +366,11 @@
   @apply text-[11px] font-semibold uppercase tracking-[0.1em] text-subtle;
 }
 
-/* Figures that sit in a column — stats, amounts, readings, codes. */
+/* Figures that sit in a column — stats, amounts, readings, codes. Same face as
+   the text around them; tabular figures keep every digit the same width. */
 @utility num {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.01em;
 }
 
 /* Page gutters — one place to change how wide the content breathes. */
@@ -362,6 +402,41 @@
 }
 
 /* ------------------------------------------------------------ motion --- */
+/* Signed-in page backdrop: the blue wash scrolls away with the page's top. */
+@utility app-backdrop {
+  background-color: var(--app-canvas);
+  background-image: radial-gradient(1100px 420px at 75% -120px, var(--app-glow), transparent 70%);
+  background-repeat: no-repeat;
+  background-attachment: local;
+}
+
+/* Each route fades in: quick and short, so moving around feels smooth, not slow. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility page-in {
+  animation: page-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Dialog backdrops fade rather than snap in. */
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+}
+
+@utility fadein {
+  animation: fadein 0.2s ease-out both;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -473,5 +548,11 @@
   *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
+  }
+
+  /* A spinner is a status signal, not decoration: crushed to 0.001ms it looks
+     frozen, so the UI seems stuck. Keep it turning at its normal pace. */
+  .animate-spin {
+    animation-duration: 1s !important;
   }
 }

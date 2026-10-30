@@ -39,6 +39,6 @@ export const deleteBill = asyncHandler(async (req, res) => {
   ok(res, data);
 });
 
-export const getStats = asyncHandler(async (_req, res) => {
-  ok(res, await billService.getStats());
+export const getStats = asyncHandler(async (req, res) => {
+  ok(res, await billService.getStats(req.validated.query));
 });

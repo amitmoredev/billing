@@ -22,8 +22,9 @@ export const useBillUpload = () => {
   const toast = useToast();
   const busy = useRef(false);
 
+  /** `siteId` (optional) files every bill in the batch under that site. */
   const upload = useCallback(
-    async (fileList) => {
+    async (fileList, siteId) => {
       const files = Array.from(fileList);
       if (!files.length || busy.current) return;
 
@@ -44,6 +45,7 @@ export const useBillUpload = () => {
           try {
             await mutateAsync({
               file,
+              siteId,
               onProgress: (progress) => setCurrent((prev) => prev && { ...prev, progress }),
             });
             uploaded += 1;

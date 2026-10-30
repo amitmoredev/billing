@@ -8,10 +8,12 @@ const SIZES = {
 
 /**
  * Logo tile plus product name. The only place the brand is drawn. `subtitle`
- * replaces the tagline line, e.g. to say which area of the app this is.
+ * replaces the tagline line, e.g. to say which area of the app this is;
+ * `showLogo={false}` leaves just the words.
  */
 export default function BrandMark({
   size = 'md',
+  showLogo = true,
   showName = true,
   showTagline = false,
   subtitle,
@@ -22,9 +24,14 @@ export default function BrandMark({
 
   return (
     <span className={`flex min-w-0 items-center gap-3 ${className}`}>
-      <span className={`grid shrink-0 place-items-center bg-accent text-on-accent ${box}`}>
-        <Zap className={icon} strokeWidth={2.4} />
-      </span>
+      {showLogo && (
+        <span
+          className={`grid shrink-0 place-items-center bg-linear-to-br from-accent to-accent-hover text-on-accent
+            shadow-accent ${box}`}
+        >
+          <Zap className={icon} strokeWidth={2.4} />
+        </span>
+      )}
 
       {showName && (
         <span className="min-w-0 leading-tight">

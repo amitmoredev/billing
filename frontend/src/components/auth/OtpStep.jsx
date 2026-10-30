@@ -88,7 +88,7 @@ export default function OtpStep({
         disabled={otp.length !== 6}
         className="mt-6 w-full"
       >
-        {!loading && <ShieldCheck className="size-4.5" />}
+        {!loading && <ShieldCheck className="size-4" />}
         Verify and sign in
       </Button>
 

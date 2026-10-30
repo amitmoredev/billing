@@ -1,15 +1,19 @@
-import { useParams } from 'react-router-dom';
-import { TriangleAlert } from 'lucide-react';
+import { Link, Navigate, useParams } from 'react-router-dom';
+import { ArrowLeft, LayoutGrid, TriangleAlert } from 'lucide-react';
 import BillDetailHeader from '../components/bills/BillDetailHeader.jsx';
 import BillViewer from '../components/bills/BillViewer.jsx';
 import ParameterForm from '../components/bills/ParameterForm.jsx';
+import Breadcrumbs from '../components/ui/Breadcrumbs.jsx';
+import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 import { useBill } from '../queries/bill.query.js';
+import { UNASSIGNED_SITE, useSitePaths } from '../hooks/useSitePaths.js';
 
 export default function BillDetailPage() {
-  const { id } = useParams();
-  const { data: bill, isLoading, error } = useBill(id);
+  const { siteId, billId } = useParams();
+  const paths = useSitePaths();
+  const { data: bill, isLoading, error } = useBill(billId);
 
   if (isLoading) {
     return (
@@ -21,8 +25,32 @@ export default function BillDetailPage() {
 
   if (error) {
     return (
-      <EmptyState icon={TriangleAlert} title="Could not load bill" description={error.message} />
+      <div className="page-x w-full space-y-6 py-7">
+        <Breadcrumbs
+          items={[{ label: 'Sites & Bills', to: paths.sites, icon: LayoutGrid }, { label: 'Bill not found' }]}
+        />
+        <div className="card">
+          <EmptyState
+            icon={TriangleAlert}
+            title="Could not load bill"
+            description={error.message}
+            action={
+              <Link to={paths.sites}>
+                <Button variant="secondary" icon={ArrowLeft}>
+                  Back to all sites
+                </Button>
+              </Link>
+            }
+          />
+        </div>
+      </div>
     );
+  }
+
+  // The URL names a site; the bill knows its real one. When they differ — the
+  // site was just changed in the form, or an old link — follow the bill.
+  if ((bill.site?.id ?? UNASSIGNED_SITE) !== siteId) {
+    return <Navigate to={paths.bill(bill)} replace />;
   }
 
   return (
@@ -41,4 +69,21 @@ export default function BillDetailPage() {
       </div>
     </div>
   );
+}
+
+/** Old `/bills/:id` links: load the bill once, then send it to its home under its site. */
+export function LegacyBillRedirect() {
+  const { billId } = useParams();
+  const paths = useSitePaths();
+  const { data: bill, isLoading, error } = useBill(billId);
+
+  if (isLoading) {
+    return (
+      <div className="grid h-full place-items-center">
+        <Spinner className="size-7" />
+      </div>
+    );
+  }
+
+  return <Navigate to={error ? paths.sites : paths.bill(bill)} replace />;
 }
