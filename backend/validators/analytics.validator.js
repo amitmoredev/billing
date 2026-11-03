@@ -9,6 +9,9 @@ export const overviewQuerySchema = z
   .object({
     site: z.preprocess(blankToUndefined, z.string().regex(OBJECT_ID, 'Invalid site id').optional()),
     discom: z.preprocess(blankToUndefined, z.string().max(120).optional()),
+    organisation: z.preprocess(blankToUndefined, z.string().max(120).optional()),
+    state: z.preprocess(blankToUndefined, z.string().max(60).optional()),
+    consumerCategory: z.preprocess(blankToUndefined, z.string().max(60).optional()),
     from: optionalMonth,
     to: optionalMonth,
 

@@ -36,7 +36,7 @@ export default function SitesPage() {
     () =>
       query
         ? sites.filter((site) =>
-            [site.name, site.code, site.discom, site.address].some((value) =>
+            [site.name, site.code, site.discom, site.address, site.organisation, site.state, site.consumerCategory].some((value) =>
               value?.toLowerCase().includes(query)
             )
           )
@@ -81,7 +81,7 @@ export default function SitesPage() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search sites by name, code, discom or address"
+          placeholder="Search sites by name, code, discom, organisation or state"
           className="w-full sm:max-w-md"
         />
       )}

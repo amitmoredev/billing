@@ -6,16 +6,25 @@ import { escapeRegex } from '../utils/regex.js';
 
 const SITE_FIELDS = 'name code discom';
 
+/** Site details the Analysis filters can narrow by. Matched whole, ignoring case. */
+export const SITE_FILTERS = ['discom', 'organisation', 'state', 'consumerCategory'];
+
 /**
- * Every verified bill that has a bill month, narrowed to one site and/or one
- * DISCOM. Dates are not filtered here: month-on-month, year-on-year and alerts
- * all need the months just outside the selected period.
+ * Every verified bill that has a bill month, narrowed to one site and/or to
+ * sites with the given details (DISCOM, organisation, state, consumer
+ * category). Dates are not filtered here: month-on-month, year-on-year and
+ * alerts all need the months just outside the selected period.
  */
-export const findVerifiedBills = async ({ site, discom } = {}) => {
+export const findVerifiedBills = async ({ site, ...details } = {}) => {
   const filter = { status: BILL_STATUS.SUBMITTED, 'parameters.billMonth': { $nin: [null, ''] } };
 
-  if (discom) {
-    const ids = await Site.find({ discom: new RegExp(`^${escapeRegex(discom)}$`, 'i') }).distinct('_id');
+  const siteMatch = {};
+  for (const field of SITE_FILTERS) {
+    if (details[field]) siteMatch[field] = new RegExp(`^${escapeRegex(details[field])}$`, 'i');
+  }
+
+  if (Object.keys(siteMatch).length) {
+    const ids = await Site.find(siteMatch).distinct('_id');
     filter.site = { $in: site ? ids.filter((id) => String(id) === site) : ids };
   } else if (site) {
     filter.site = site;

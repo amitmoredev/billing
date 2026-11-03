@@ -56,6 +56,11 @@ export default function SiteCard({ site, to, userId, mayEdit, mayDelete, onEdit,
               </span>
             )}
           </p>
+          {[site.organisation, site.state, site.consumerCategory].some(Boolean) && (
+            <p className="mt-1 truncate text-xs text-subtle">
+              {[site.organisation, site.state, site.consumerCategory].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
 
         {/* Above the stretched link, so these get their own clicks. */}

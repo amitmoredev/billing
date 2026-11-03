@@ -8,6 +8,11 @@ const siteSchema = new mongoose.Schema(
     code: { type: String, trim: true, uppercase: true, maxlength: 30, default: '' }, // short label, e.g. "PLT-02"
     address: { type: String, trim: true, maxlength: 300, default: '' },
     discom: { type: String, trim: true, maxlength: 120, default: '' }, // distribution company that bills this site
+    // What the Analysis page filters by. Consumer category (HT Industrial, LT
+    // Commercial…) strictly belongs to a connection; every site has one today.
+    organisation: { type: String, trim: true, maxlength: 120, default: '' },
+    state: { type: String, trim: true, maxlength: 60, default: '' }, // one of INDIAN_STATES, or ''
+    consumerCategory: { type: String, trim: true, maxlength: 60, default: '' },
     // Who added it. Clients may edit or delete only their own; null (sites from
     // before this was recorded) leaves a site to admins.
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

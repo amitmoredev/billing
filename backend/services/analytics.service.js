@@ -551,5 +551,8 @@ export const buildOverview = (bills, { from, to, ...overrides } = {}) => {
 };
 
 /** The Analysis page's data for verified bills matching the filters. */
-export const getOverview = async ({ site, discom, ...query }) =>
-  buildOverview(await analyticsData.findVerifiedBills({ site, discom }), query);
+export const getOverview = async ({ site, discom, organisation, state, consumerCategory, ...query }) =>
+  buildOverview(
+    await analyticsData.findVerifiedBills({ site, discom, organisation, state, consumerCategory }),
+    query
+  );

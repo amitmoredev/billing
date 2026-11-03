@@ -62,6 +62,9 @@ export default function AnalysisPage() {
   const filters = {
     site: searchParams.get('site') ?? '',
     discom: searchParams.get('discom') ?? '',
+    organisation: searchParams.get('organisation') ?? '',
+    state: searchParams.get('state') ?? '',
+    consumerCategory: searchParams.get('consumerCategory') ?? '',
     period: searchParams.get('period') ?? 'all',
     fy: searchParams.get('fy') ?? String(fyStartYear(currentMonth())),
     month: searchParams.get('month') ?? '',
@@ -98,6 +101,9 @@ export default function AnalysisPage() {
   const { data, isLoading, isFetching, error } = useAnalytics({
     site: filters.site || undefined,
     discom: filters.discom || undefined,
+    organisation: filters.organisation || undefined,
+    state: filters.state || undefined,
+    consumerCategory: filters.consumerCategory || undefined,
     ...(invalidRange ? {} : range),
     ...assumptions,
   });

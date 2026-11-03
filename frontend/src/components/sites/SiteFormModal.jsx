@@ -3,10 +3,11 @@ import { MapPinPlus, Save } from 'lucide-react';
 import Modal, { ModalFooter } from '../ui/Modal.jsx';
 import TextField from '../ui/TextField.jsx';
 import ComboboxField from '../ui/ComboboxField.jsx';
+import SelectField from '../ui/SelectField.jsx';
 import Button from '../ui/Button.jsx';
 import ErrorNote from '../ui/ErrorNote.jsx';
-import { useCreateSite, useUpdateSite } from '../../queries/site.query.js';
-import { DISCOM_SUGGESTIONS } from '../../constants/site.constants.js';
+import { useCreateSite, useSites, useUpdateSite } from '../../queries/site.query.js';
+import { CATEGORY_SUGGESTIONS, DISCOM_SUGGESTIONS, INDIAN_STATES } from '../../constants/site.constants.js';
 import { useToast } from '../../context/toast.context.js';
 
 /**
@@ -26,7 +27,17 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
     code: site?.code ?? '',
     address: site?.address ?? '',
     discom: site?.discom ?? '',
+    organisation: site?.organisation ?? '',
+    state: site?.state ?? '',
+    consumerCategory: site?.consumerCategory ?? '',
   });
+
+  // Names already given to other sites come first, so the same organisation
+  // or category isn't typed two different ways.
+  const { data: sites = [] } = useSites();
+  const used = (field) => [...new Set(sites.map((s) => s[field]).filter(Boolean))].sort();
+  const organisations = used('organisation');
+  const categories = [...new Set([...used('consumerCategory'), ...CATEGORY_SUGGESTIONS])];
 
   const setField = (name, value) => setValues((prev) => ({ ...prev, [name]: value }));
 
@@ -94,6 +105,35 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
             onChange={(value) => setField('discom', value)}
             error={fieldErrors.discom}
           />
+          <ComboboxField
+            label="Organisation"
+            maxLength={120}
+            placeholder="Optional, e.g. SAP Group"
+            hint="The company or group the site belongs to"
+            options={organisations}
+            value={values.organisation}
+            onChange={(value) => setField('organisation', value)}
+            error={fieldErrors.organisation}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              label="State"
+              placeholder="Not set"
+              options={INDIAN_STATES.map((state) => ({ value: state, label: state }))}
+              value={values.state}
+              onChange={(e) => setField('state', e.target.value)}
+              error={fieldErrors.state}
+            />
+            <ComboboxField
+              label="Consumer category"
+              maxLength={60}
+              placeholder="Optional, e.g. HT Industrial"
+              options={categories}
+              value={values.consumerCategory}
+              onChange={(value) => setField('consumerCategory', value)}
+              error={fieldErrors.consumerCategory}
+            />
+          </div>
 
           {formError && <ErrorNote message={formError} className="" />}
         </div>
