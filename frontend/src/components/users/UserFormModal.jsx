@@ -60,8 +60,8 @@ export default function UserFormModal({ user, onClose }) {
       }
       onClose={onClose}
     >
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="space-y-4 px-6 py-5">
+      <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
           <TextField
             label="Name"
             required

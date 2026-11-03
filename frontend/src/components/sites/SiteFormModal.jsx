@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MapPinPlus, Save } from 'lucide-react';
-import Modal, { ModalFooter } from '../ui/Modal.jsx';
+import Modal, { ModalBody, ModalFooter } from '../ui/Modal.jsx';
 import TextField from '../ui/TextField.jsx';
 import ComboboxField from '../ui/ComboboxField.jsx';
 import SelectField from '../ui/SelectField.jsx';
@@ -59,14 +59,15 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
 
   return (
     <Modal
+      size="lg"
       title={isEdit ? 'Edit site' : 'Add site'}
       description={
         isEdit ? 'Bills at this site show the new details.' : 'Bills can be filed under it right away.'
       }
       onClose={onClose}
     >
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="space-y-4 px-6 py-5">
+      <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+        <ModalBody className="grid content-start gap-4 sm:grid-cols-2">
           <TextField
             label="Site name"
             required
@@ -81,7 +82,6 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
             label="Site code"
             maxLength={30}
             placeholder="Optional, e.g. PLT-02"
-            hint="A short label shown next to the name"
             value={values.code}
             onChange={(e) => setField('code', e.target.value.toUpperCase())}
             error={fieldErrors.code}
@@ -90,6 +90,7 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
             label="Address"
             maxLength={300}
             placeholder="Optional"
+            className="sm:col-span-2"
             value={values.address}
             onChange={(e) => setField('address', e.target.value)}
             error={fieldErrors.address}
@@ -99,7 +100,6 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
             label="Discom"
             maxLength={120}
             placeholder="Optional, e.g. MSEDCL"
-            hint="The distribution company that bills this site"
             options={DISCOM_SUGGESTIONS}
             value={values.discom}
             onChange={(value) => setField('discom', value)}
@@ -109,34 +109,31 @@ export default function SiteFormModal({ site, onClose, onSaved }) {
             label="Organisation"
             maxLength={120}
             placeholder="Optional, e.g. SAP Group"
-            hint="The company or group the site belongs to"
             options={organisations}
             value={values.organisation}
             onChange={(value) => setField('organisation', value)}
             error={fieldErrors.organisation}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SelectField
-              label="State"
-              placeholder="Not set"
-              options={INDIAN_STATES.map((state) => ({ value: state, label: state }))}
-              value={values.state}
-              onChange={(e) => setField('state', e.target.value)}
-              error={fieldErrors.state}
-            />
-            <ComboboxField
-              label="Consumer category"
-              maxLength={60}
-              placeholder="Optional, e.g. HT Industrial"
-              options={categories}
-              value={values.consumerCategory}
-              onChange={(value) => setField('consumerCategory', value)}
-              error={fieldErrors.consumerCategory}
-            />
-          </div>
+          <SelectField
+            label="State"
+            placeholder="Not set"
+            options={INDIAN_STATES.map((state) => ({ value: state, label: state }))}
+            value={values.state}
+            onChange={(e) => setField('state', e.target.value)}
+            error={fieldErrors.state}
+          />
+          <ComboboxField
+            label="Consumer category"
+            maxLength={60}
+            placeholder="Optional, e.g. HT Industrial"
+            options={categories}
+            value={values.consumerCategory}
+            onChange={(value) => setField('consumerCategory', value)}
+            error={fieldErrors.consumerCategory}
+          />
 
-          {formError && <ErrorNote message={formError} className="" />}
-        </div>
+          {formError && <ErrorNote message={formError} className="sm:col-span-2" />}
+        </ModalBody>
 
         <ModalFooter>
           <Button type="button" variant="secondary" onClick={onClose}>
