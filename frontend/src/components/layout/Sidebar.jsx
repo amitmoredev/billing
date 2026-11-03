@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import BrandMark from '../ui/BrandMark.jsx';
 import ProfileMenu from './ProfileMenu.jsx';
@@ -95,6 +95,9 @@ export default function Sidebar({ nav, collapsed = false, onToggle, onClose }) {
 
 function NavItem({ item, collapsed, onNavigate }) {
   const IconComponent = item.icon;
+  const { pathname } = useLocation();
+  // A sub-path with its own menu entry doesn't also light up this one.
+  const excluded = Boolean(item.except && pathname.startsWith(item.except));
 
   return (
     <NavLink
@@ -103,11 +106,12 @@ function NavItem({ item, collapsed, onNavigate }) {
       onClick={onNavigate}
       title={collapsed ? item.label : undefined}
       aria-label={collapsed ? item.label : undefined}
+      aria-current={excluded ? false : 'page'}
       className={({ isActive }) =>
         `focus-ring group relative flex h-11 items-center rounded-xl text-sm font-semibold transition duration-200
         ${collapsed ? 'justify-center' : 'gap-3 px-3'}
         ${
-          isActive
+          isActive && !excluded
             ? 'bg-linear-to-br from-accent to-accent-hover text-on-accent shadow-accent'
             : 'text-muted hover:bg-hover hover:text-ink'
         }`
@@ -117,7 +121,7 @@ function NavItem({ item, collapsed, onNavigate }) {
         <>
           <IconComponent
             className={`size-5 shrink-0 transition ${
-              isActive ? 'text-on-accent' : 'text-subtle group-hover:text-ink'
+              isActive && !excluded ? 'text-on-accent' : 'text-subtle group-hover:text-ink'
             }`}
           />
           {!collapsed && <span className="truncate">{item.label}</span>}

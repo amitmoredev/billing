@@ -6,6 +6,7 @@ import { ACTIONS, SUBJECTS } from '../policies/permissions.js';
 import {
   billDraftSchema,
   billSubmitSchema,
+  bulkAssignSiteSchema,
   idParamSchema,
   listQuerySchema,
   presignSchema,
@@ -38,6 +39,9 @@ router.post(
   validate(idParamSchema, 'params'),
   billController.confirmUpload
 );
+
+// Bulk filing of many bills under one site (the temporary "Assign bills" screen).
+router.patch('/site', allow(ACTIONS.UPDATE), validate(bulkAssignSiteSchema), billController.assignSite);
 
 router.get('/', allow(ACTIONS.READ), validate(listQuerySchema, 'query'), billController.listBills);
 router.get('/:id', allow(ACTIONS.READ), validate(idParamSchema, 'params'), billController.getBill);

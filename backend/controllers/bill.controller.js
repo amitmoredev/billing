@@ -34,6 +34,10 @@ export const submitParameters = asyncHandler(async (req, res) => {
   ok(res, bill);
 });
 
+export const assignSite = asyncHandler(async (req, res) => {
+  ok(res, await billService.assignSite(req.validated.body));
+});
+
 export const deleteBill = asyncHandler(async (req, res) => {
   const data = await billService.deleteBill(req.validated.params.id);
   ok(res, data);

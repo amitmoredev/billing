@@ -20,10 +20,10 @@ export const BILLS_PAGE_SIZE = 10;
  * `fetchNextPage` loads the next one, `hasNextPage` says whether there is one.
  * Invalidating the lists refetches every loaded page, so nothing goes stale.
  */
-export const useInfiniteBills = (params) =>
+export const useInfiniteBills = (params, { pageSize = BILLS_PAGE_SIZE } = {}) =>
   useInfiniteQuery({
-    queryKey: billKeys.list({ ...params, limit: BILLS_PAGE_SIZE }),
-    queryFn: ({ pageParam }) => billService.listBills({ ...params, page: pageParam, limit: BILLS_PAGE_SIZE }),
+    queryKey: billKeys.list({ ...params, limit: pageSize }),
+    queryFn: ({ pageParam }) => billService.listBills({ ...params, page: pageParam, limit: pageSize }),
     initialPageParam: 1,
     getNextPageParam: ({ pagination }) =>
       pagination.page < pagination.pages ? pagination.page + 1 : undefined,
@@ -79,6 +79,18 @@ export const useSaveParameters = (id) =>
 
 export const useSubmitParameters = (id) =>
   useParameterMutation(id, (values) => billService.submitParameters(id, values));
+
+/** Bulk move to a site. Every bill's site shows in many places, so all bill data refetches. */
+export const useAssignBillsToSite = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ billIds, siteId }) => billService.assignSite(billIds, siteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: billKeys.all });
+      queryClient.invalidateQueries({ queryKey: siteKeys.all });
+    },
+  });
+};
 
 export const useDeleteBill = () => {
   const queryClient = useQueryClient();

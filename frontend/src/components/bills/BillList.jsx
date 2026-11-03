@@ -71,7 +71,7 @@ export default function BillList({
  * there for keyboards and for when the observer can't fire (e.g. a very tall
  * screen that already shows everything loaded).
  */
-function LoadMore({ hasMore, loading, onLoadMore }) {
+export function LoadMore({ hasMore, loading, onLoadMore }) {
   const sentinelRef = useRef(null);
 
   useEffect(() => {

@@ -18,6 +18,10 @@ export const submitParameters = (id, values) =>
 
 export const deleteBill = (id) => http(ENDPOINTS.bills.remove(id), { method: 'DELETE' });
 
+/** Files many bills under one site at once; `siteId` null takes them off any site. */
+export const assignSite = (billIds, siteId) =>
+  http(ENDPOINTS.bills.assignSite(), { method: 'PATCH', body: { billIds, site: siteId } });
+
 /** Three-step upload: reserve row, PUT bytes to R2, confirm. `siteId` files it under a site. */
 export const uploadBill = async (file, { onProgress, siteId } = {}) => {
   const intent = await http(ENDPOINTS.bills.presignUpload(), {

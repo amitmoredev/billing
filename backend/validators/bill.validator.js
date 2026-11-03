@@ -87,6 +87,15 @@ export const listQuerySchema = z.object({
 
 export const statsQuerySchema = z.object({ site: siteFilter });
 
+/** Bulk move: file many bills under one site at once (`site: null` unassigns them). */
+export const bulkAssignSiteSchema = z.object({
+  billIds: z
+    .array(z.string().regex(OBJECT_ID, 'Invalid bill id'))
+    .min(1, 'Select at least one bill')
+    .max(500, 'Assign at most 500 bills at a time'),
+  site: z.string().regex(OBJECT_ID, 'Pick a site').nullable(),
+});
+
 export const idParamSchema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid bill id'),
 });

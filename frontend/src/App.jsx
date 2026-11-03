@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import SitesPage from './pages/SitesPage.jsx';
 import SiteDetailPage from './pages/SiteDetailPage.jsx';
+import AssignBillsPage from './pages/AssignBillsPage.jsx';
 import BillDetailPage, { LegacyBillRedirect } from './pages/BillDetailPage.jsx';
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx';
 import UsersPage from './pages/admin/UsersPage.jsx';
@@ -20,6 +21,8 @@ import { ADMIN_NAV, APP_NAV } from './constants/navigation.constants.js';
 const siteRoutes = (
   <>
     <Route index element={<SitesPage />} />
+    {/* TEMPORARY: bulk filing of pre-sites bills. A fixed path, so it wins over :siteId. */}
+    <Route path="assign" element={<AssignBillsPage />} />
     <Route path=":siteId" element={<SiteDetailPage />} />
     <Route path=":siteId/bills/:billId" element={<BillDetailPage />} />
   </>
