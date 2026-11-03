@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSession } from '../../queries/auth.query.js';
 import Spinner from '../ui/Spinner.jsx';
-import { WAKING_SERVER_HINT, useSlowHint } from '../../hooks/useSlowHint.js';
 
 /**
  * Gate for signed-in areas. Remembers where the user was headed. With a
@@ -11,16 +10,12 @@ import { WAKING_SERVER_HINT, useSlowHint } from '../../hooks/useSlowHint.js';
 export default function RequireAuth({ loginPath = '/login', permission }) {
   const location = useLocation();
   const { isAuthenticated, isChecking, can } = useSession();
-  const slow = useSlowHint(isChecking);
 
   // A signed-in page can't render before the session is known, so this one waits.
   if (isChecking) {
     return (
       <div className="grid h-full place-items-center bg-canvas px-6">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <Spinner className="size-6" />
-          {slow && <p className="max-w-xs text-sm text-muted">{WAKING_SERVER_HINT}</p>}
-        </div>
+        <Spinner className="size-6" />
       </div>
     );
   }

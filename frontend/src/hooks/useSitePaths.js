@@ -14,8 +14,6 @@ export const useSitePaths = () => {
 
   return {
     sites: base,
-    /** The temporary bulk "Assign bills" screen. */
-    assign: `${base}/assign`,
     /** `siteId` null or undefined = the unassigned bills. */
     site: (siteId) => `${base}/${siteId ?? UNASSIGNED_SITE}`,
     /** Where a bill lives: under its own site, whatever URL it was reached by. */

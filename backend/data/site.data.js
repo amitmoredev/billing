@@ -39,5 +39,22 @@ export const countBillsBySiteAndStatus = ({ site } = {}) =>
     { $project: { _id: 0, site: '$_id.site', status: '$_id.status', count: 1 } },
   ]);
 
+/**
+ * One row per site with how many different customer numbers its bills carry —
+ * one per electricity connection. Bills whose number isn't filled in yet don't
+ * count. Pass `site` (an id) to count a single site.
+ */
+export const countConsumersBySite = ({ site } = {}) =>
+  Bill.aggregate([
+    {
+      $match: {
+        'parameters.customerNumber': { $nin: [null, ''] },
+        ...(site && { site: new mongoose.Types.ObjectId(site) }),
+      },
+    },
+    { $group: { _id: '$site', numbers: { $addToSet: '$parameters.customerNumber' } } },
+    { $project: { _id: 0, site: '$_id', consumers: { $size: '$numbers' } } },
+  ]);
+
 /** Every bill pointing at the site, finished upload or not — what blocks a delete. */
 export const countBills = (id) => Bill.countDocuments({ site: id });

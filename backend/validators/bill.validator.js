@@ -2,18 +2,18 @@ import { z } from 'zod';
 import { BILL_STATUS } from '../models/bill.model.js';
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
-const OBJECT_ID = /^[a-f\d]{24}$/i;
+export const OBJECT_ID = /^[a-f\d]{24}$/i;
 
 /** List filter value meaning "bills with no site yet". */
 export const NO_SITE = 'none';
 
 // Form inputs arrive as strings; empty means "not filled", not zero.
-const blankToUndefined = (v) => {
+export const blankToUndefined = (v) => {
   const value = typeof v === 'string' ? v.trim() : v;
   return value === '' || value === null ? undefined : value;
 };
 
-const optionalNumber = ({ min = -Infinity, max = Infinity } = {}) =>
+export const optionalNumber = ({ min = -Infinity, max = Infinity } = {}) =>
   z.preprocess((v) => {
     const value = blankToUndefined(v);
     return value === undefined ? undefined : Number(value);
@@ -21,7 +21,7 @@ const optionalNumber = ({ min = -Infinity, max = Infinity } = {}) =>
 
 const optionalText = z.preprocess(blankToUndefined, z.string().min(1).max(200).optional());
 
-const optionalMonth = z.preprocess(
+export const optionalMonth = z.preprocess(
   blankToUndefined,
   z.string().regex(MONTH_PATTERN, 'Expected format YYYY-MM').optional()
 );
@@ -86,15 +86,6 @@ export const listQuerySchema = z.object({
 });
 
 export const statsQuerySchema = z.object({ site: siteFilter });
-
-/** Bulk move: file many bills under one site at once (`site: null` unassigns them). */
-export const bulkAssignSiteSchema = z.object({
-  billIds: z
-    .array(z.string().regex(OBJECT_ID, 'Invalid bill id'))
-    .min(1, 'Select at least one bill')
-    .max(500, 'Assign at most 500 bills at a time'),
-  site: z.string().regex(OBJECT_ID, 'Pick a site').nullable(),
-});
 
 export const idParamSchema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid bill id'),

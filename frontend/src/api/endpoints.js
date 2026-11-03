@@ -18,7 +18,6 @@ export const ENDPOINTS = {
     confirmUpload: (id) => `/bills/${id}/uploads/confirm`,
     saveParameters: (id) => `/bills/${id}/parameters`,
     submitParameters: (id) => `/bills/${id}/parameters/submit`,
-    assignSite: () => '/bills/site',
   },
 
   sites: {
@@ -26,6 +25,10 @@ export const ENDPOINTS = {
     create: () => '/sites',
     update: (id) => `/sites/${id}`,
     remove: (id) => `/sites/${id}`,
+  },
+
+  analytics: {
+    overview: () => '/analytics',
   },
 
   users: {

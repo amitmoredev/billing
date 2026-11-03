@@ -6,7 +6,7 @@ import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import SitesPage from './pages/SitesPage.jsx';
 import SiteDetailPage from './pages/SiteDetailPage.jsx';
-import AssignBillsPage from './pages/AssignBillsPage.jsx';
+import AnalysisPage from './pages/AnalysisPage.jsx';
 import BillDetailPage, { LegacyBillRedirect } from './pages/BillDetailPage.jsx';
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx';
 import UsersPage from './pages/admin/UsersPage.jsx';
@@ -21,8 +21,6 @@ import { ADMIN_NAV, APP_NAV } from './constants/navigation.constants.js';
 const siteRoutes = (
   <>
     <Route index element={<SitesPage />} />
-    {/* TEMPORARY: bulk filing of pre-sites bills. A fixed path, so it wins over :siteId. */}
-    <Route path="assign" element={<AssignBillsPage />} />
     <Route path=":siteId" element={<SiteDetailPage />} />
     <Route path=":siteId/bills/:billId" element={<BillDetailPage />} />
   </>
@@ -41,6 +39,7 @@ export default function App() {
       <Route element={<RequireAuth />}>
         <Route element={<DashboardLayout nav={APP_NAV} />}>
           <Route path="sites">{siteRoutes}</Route>
+          <Route path="analysis" element={<AnalysisPage />} />
           {/* Bills used to live at /bills; old links and bookmarks still land somewhere sensible. */}
           <Route path="bills" element={<Navigate to="/sites" replace />} />
           <Route path="bills/:billId" element={<LegacyBillRedirect />} />
@@ -62,6 +61,7 @@ export default function App() {
             <Route index element={<Navigate to="users" replace />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="sites">{siteRoutes}</Route>
+            <Route path="analysis" element={<AnalysisPage />} />
           </Route>
         </Route>
       </Route>

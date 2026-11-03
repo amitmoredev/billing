@@ -20,7 +20,7 @@ const creatorLabel = (creator, userId) => {
  * edit and delete sit above that link so they stay their own buttons.
  */
 export default function SiteCard({ site, to, userId, mayEdit, mayDelete, onEdit, onDelete, index = 0 }) {
-  const { total, pending, verified } = site.bills;
+  const { total, pending, verified, consumers = 0 } = site.bills;
   const addedBy = creatorLabel(site.createdBy, userId);
 
   return (
@@ -83,7 +83,7 @@ export default function SiteCard({ site, to, userId, mayEdit, mayDelete, onEdit,
         {site.address || <span className="text-subtle">No address added</span>}
       </p>
 
-      <BillCounts total={total} pending={pending} verified={verified} />
+      <BillCounts total={total} pending={pending} verified={verified} consumers={consumers} />
 
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3.5 text-xs">
         <span className="truncate text-subtle">{addedBy}</span>
@@ -125,14 +125,18 @@ export function UnassignedCard({ counts, to }) {
   );
 }
 
-/** Three small figures plus a bar of how much of the site's backlog is verified. */
-function BillCounts({ total, pending, verified }) {
+/**
+ * Four small figures — bills, consumer numbers (one per electricity
+ * connection), pending, verified — plus a bar of how much is verified.
+ */
+function BillCounts({ total, pending, verified, consumers }) {
   const share = total ? Math.round((verified / total) * 100) : 0;
 
   return (
     <div className="mt-4">
-      <dl className="grid grid-cols-3 gap-2">
+      <dl className="grid grid-cols-2 gap-2">
         <Count label="Bills" value={total} />
+        <Count label="Consumer nos." value={consumers} />
         <Count label="Pending" value={pending} tone={pending ? 'text-warn-fg' : 'text-ink'} />
         <Count label="Verified" value={verified} tone={verified ? 'text-ok-fg' : 'text-ink'} />
       </dl>

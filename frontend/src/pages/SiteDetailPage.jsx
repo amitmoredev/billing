@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Inbox, LayoutGrid, ListChecks, Lock, MapPin, MapPinOff, Pencil, Trash2, Zap } from 'lucide-react';
+import { ArrowLeft, Inbox, LayoutGrid, Lock, MapPin, MapPinOff, Pencil, Trash2, Zap } from 'lucide-react';
 import Breadcrumbs from '../components/ui/Breadcrumbs.jsx';
 import Button from '../components/ui/Button.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
@@ -113,7 +113,7 @@ export default function SiteDetailPage() {
       <Breadcrumbs items={[rootCrumb, { label: isUnassigned ? 'Unassigned bills' : site.name }]} />
 
       {isUnassigned ? (
-        <UnassignedHeader assignTo={paths.assign} />
+        <UnassignedHeader />
       ) : (
         <SiteHeader
           site={site}
@@ -254,7 +254,7 @@ function SiteHeader({ site, userId, mayEdit, mayDelete, onEdit, onDelete }) {
   );
 }
 
-function UnassignedHeader({ assignTo }) {
+function UnassignedHeader() {
   return (
     <header className="card rise-in flex flex-wrap items-start gap-4 p-5 sm:gap-5 sm:p-6">
       <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-warn-soft text-warn-fg ring-1 ring-inset ring-warn-line">
@@ -263,12 +263,9 @@ function UnassignedHeader({ assignTo }) {
       <div className="min-w-0 flex-1">
         <h1 className="page-title">Unassigned bills</h1>
         <p className="mt-1.5 max-w-2xl text-sm text-muted">
-          These bills aren&apos;t filed under a site yet. Open one and pick its site, or file many at once.
+          These bills aren&apos;t filed under a site yet. Open one and pick its site.
         </p>
       </div>
-      <Link to={assignTo}>
-        <Button icon={ListChecks}>Assign in bulk</Button>
-      </Link>
     </header>
   );
 }

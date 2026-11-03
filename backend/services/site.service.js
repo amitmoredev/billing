@@ -24,23 +24,37 @@ const toCreatorDto = (creator) =>
     ? null
     : { id: String(creator._id), name: creator.name, isAdmin: creator.role === ROLES.ADMIN };
 
-const EMPTY_COUNTS = { total: 0, pending: 0, verified: 0 };
+// `consumers` = distinct customer numbers, i.e. electricity connections.
+const EMPTY_COUNTS = { total: 0, pending: 0, verified: 0, consumers: 0 };
 
-/** Rows of (site, status, count) folded into `{ siteId | 'none': { total, pending, verified } }`. */
-const tallyBills = (rows) => {
+/**
+ * Status rows (site, status, count) and consumer rows (site, consumers) folded
+ * into `{ siteId | 'none': { total, pending, verified, consumers } }`.
+ */
+const tallyBills = (statusRows, consumerRows) => {
   const bySite = {};
-  for (const { site, status, count } of rows) {
-    const key = site ? String(site) : 'none';
-    const counts = (bySite[key] ??= { ...EMPTY_COUNTS });
+  const countsOf = (site) => (bySite[site ? String(site) : 'none'] ??= { ...EMPTY_COUNTS });
+
+  for (const { site, status, count } of statusRows) {
+    const counts = countsOf(site);
     counts.total += count;
     if (status === BILL_STATUS.UPLOADED) counts.pending += count;
     if (status === BILL_STATUS.SUBMITTED) counts.verified += count;
   }
+  for (const { site, consumers } of consumerRows) countsOf(site).consumers = consumers;
+
   return bySite;
 };
 
-const countsFor = async (id) =>
-  tallyBills(await siteData.countBillsBySiteAndStatus({ site: id }))[id] ?? { ...EMPTY_COUNTS };
+const countAll = async ({ site } = {}) => {
+  const [statusRows, consumerRows] = await Promise.all([
+    siteData.countBillsBySiteAndStatus({ site }),
+    siteData.countConsumersBySite({ site }),
+  ]);
+  return tallyBills(statusRows, consumerRows);
+};
+
+const countsFor = async (id) => (await countAll({ site: id }))[id] ?? { ...EMPTY_COUNTS };
 
 const toDto = (site, bills = EMPTY_COUNTS) => ({
   ...site.toJSON(),
@@ -72,8 +86,7 @@ export const assertExists = async (id, field = 'site') => {
 
 /** Every site with its bill counts, plus the counts for bills not under any site. */
 export const listSites = async () => {
-  const [sites, rows] = await Promise.all([siteData.findAll(), siteData.countBillsBySiteAndStatus()]);
-  const counts = tallyBills(rows);
+  const [sites, counts] = await Promise.all([siteData.findAll(), countAll()]);
   return {
     items: sites.map((site) => toDto(site, counts[site.id])),
     unassigned: counts.none ?? { ...EMPTY_COUNTS },

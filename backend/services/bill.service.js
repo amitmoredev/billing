@@ -138,12 +138,6 @@ export const submitParameters = async (id, { site, ...parameters }) => {
   return saveAndShow(bill);
 };
 
-/** Bulk move. Only the site changes — parameters and status are left as they are. */
-export const assignSite = async ({ billIds, site }) => {
-  if (site) await assertSiteExists(site);
-  return billData.assignSite([...new Set(billIds)], site);
-};
-
 /** Remove the object first — an orphaned row is easier to spot than an orphaned object. */
 export const deleteBill = async (id) => {
   const bill = await loadOrThrow(id);

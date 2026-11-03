@@ -18,7 +18,23 @@ export const formatMonth = (value) => {
   return date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 };
 
-export const isPdf = (mimeType) => mimeType === 'application/pdf';
+/** 1234567.8 -> "12,34,568" (Indian grouping). `digits` = decimals kept. */
+export const formatNumber = (value, digits = 0) =>
+  value == null || !Number.isFinite(value)
+    ? '—'
+    : value.toLocaleString('en-IN', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+/** 123456 -> "₹1,23,456" */
+export const formatInr = (value) => (value == null ? '—' : `₹${formatNumber(value)}`);
+
+/** 12.345 -> "+12.3%"; the sign shows which way it moved. */
+export const formatChange = (value) =>
+  value == null ? '—' : `${value > 0 ? '+' : ''}${formatNumber(value, 1)}%`;
+
+/** 0.9 -> "0.900" */
+export const formatPf = (value) => (value == null ? '—' : value.toFixed(3));
+
+export const isPdf =(mimeType) => mimeType === 'application/pdf';
 
 /** "9876543210" -> "+91 98765 43210" */
 export const formatPhone = (phone) =>
@@ -26,6 +42,15 @@ export const formatPhone = (phone) =>
 
 /** "Pune Plant 2 · PLT-02" — the one way a site is named in a list or dropdown. */
 export const siteLabel = (site) => (site ? [site.name, site.code].filter(Boolean).join(' · ') : '');
+
+/** "Pune Plant 2 · PLT-02 / 1234567" — one electricity connection (site + consumer number) as text. */
+export const connectionLabel = ({ site, customerNumber }) =>
+  `${siteLabel(site) || 'Unassigned'} / ${customerNumber || '—'}`;
+
+const compact = new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 1 });
+
+/** 125000 -> "1.3L" — for axis ticks, where full figures crowd. */
+export const formatCompact = (value) => (value == null ? '—' : compact.format(value));
 
 /** A person's name, or their number when no name was given. */
 export const displayName = (user) => user?.name || formatPhone(user?.phone);

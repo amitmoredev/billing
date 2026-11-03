@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 import ErrorNote from '../ui/ErrorNote.jsx';
-import { WAKING_SERVER_HINT, useSlowHint } from '../../hooks/useSlowHint.js';
 
 const digitsOnly = (value) => value.replace(/\D/g, '').slice(0, 10);
 
@@ -16,7 +15,6 @@ export default function PhoneStep({
 }) {
   const [phone, setPhone] = useState(defaultValue);
   const isComplete = phone.length === 10;
-  const slow = useSlowHint(loading);
 
   return (
     <form
@@ -68,11 +66,6 @@ export default function PhoneStep({
         {!loading && <ArrowRight className="size-4" />}
       </Button>
 
-      {slow && (
-        <p role="status" className="mt-3 text-center text-xs text-muted">
-          {WAKING_SERVER_HINT}
-        </p>
-      )}
 
       {note && <p className="mt-5 text-center text-xs text-subtle">{note}</p>}
     </form>

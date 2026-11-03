@@ -80,18 +80,6 @@ export const useSaveParameters = (id) =>
 export const useSubmitParameters = (id) =>
   useParameterMutation(id, (values) => billService.submitParameters(id, values));
 
-/** Bulk move to a site. Every bill's site shows in many places, so all bill data refetches. */
-export const useAssignBillsToSite = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ billIds, siteId }) => billService.assignSite(billIds, siteId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: billKeys.all });
-      queryClient.invalidateQueries({ queryKey: siteKeys.all });
-    },
-  });
-};
-
 export const useDeleteBill = () => {
   const queryClient = useQueryClient();
   return useMutation({

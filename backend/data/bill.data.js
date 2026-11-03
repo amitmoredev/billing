@@ -47,12 +47,6 @@ export const updateById = (id, update) =>
 
 export const deleteById = (id) => Bill.findByIdAndDelete(id);
 
-/** Points every listed bill at `site` (null = no site) in one write. */
-export const assignSite = async (ids, site) => {
-  const result = await Bill.updateMany({ _id: { $in: ids } }, { $set: { site } });
-  return { matched: result.matchedCount, modified: result.modifiedCount };
-};
-
 // Unlike find(), aggregate() never casts, so a string id would match nothing.
 export const countByStatus = ({ site } = {}) =>
   Bill.aggregate([
