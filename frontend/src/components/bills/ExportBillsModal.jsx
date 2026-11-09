@@ -21,13 +21,19 @@ export default function ExportBillsModal({ siteId = '', onClose }) {
   const [to, setTo] = useState('');
 
   const { data: sites = [] } = useSites();
-  const { data: months = [], isLoading: monthsLoading } = useBillMonths({ site: site || undefined });
+  const {
+    data: months = [],
+    isLoading: monthsLoading,
+    isSuccess: monthsLoaded,
+    error: monthsError,
+  } = useBillMonths({ site: site || undefined });
   const exportBills = useExportBills();
 
   // Newest first reads better in a picker; the API sorts its own way.
   const monthOptions = [...months].reverse().map((month) => ({ value: month, label: formatMonth(month) }));
   const invalidRange = from && to && from > to;
-  const nothingToExport = !monthsLoading && !months.length;
+  // Only an answer from the API means "nothing to export" — a failed request is not an empty one.
+  const nothingToExport = monthsLoaded && !months.length;
 
   const handleExport = () =>
     exportBills.mutate(
@@ -65,7 +71,7 @@ export default function ExportBillsModal({ siteId = '', onClose }) {
             options={monthOptions}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            disabled={nothingToExport}
+            disabled={!monthOptions.length}
           />
           <SelectField
             label="To"
@@ -73,7 +79,7 @@ export default function ExportBillsModal({ siteId = '', onClose }) {
             options={monthOptions}
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            disabled={nothingToExport}
+            disabled={!monthOptions.length}
             error={invalidRange ? 'Before the start month' : undefined}
           />
         </div>
@@ -81,7 +87,15 @@ export default function ExportBillsModal({ siteId = '', onClose }) {
           Pick the same month in both for a single month. Leave both blank for every month on record.
         </p>
 
-        {nothingToExport && <ErrorNote message="No verified bills to export for this site yet." className="" />}
+        {monthsError && (
+          <ErrorNote message={`Couldn't load the months on record: ${monthsError.message}`} className="" />
+        )}
+        {nothingToExport && (
+          <ErrorNote
+            message={site ? 'No verified bills to export for this site yet.' : 'No verified bills to export yet.'}
+            className=""
+          />
+        )}
         {exportBills.error && <ErrorNote message={exportBills.error.message} className="" />}
       </ModalBody>
 
