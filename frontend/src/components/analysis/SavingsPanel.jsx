@@ -22,7 +22,7 @@ const toOpportunities = (connections) =>
         kind: 'pf',
         connection: c,
         action: pf.capacitorKvar
-          ? `Install ~${formatNumber(pf.capacitorKvar, 1)} kVAR of capacitors`
+          ? `Install ~${formatNumber(pf.capacitorKvar, 1)} kVAr of capacitors`
           : 'Bring PF up to target',
         saving: pf.potentialSavings,
         investment: pf.capacitorCost,
@@ -111,8 +111,8 @@ export default function SavingsPanel({ summary, savings, connections, assumption
           value={formatInr(savings.capacitorCost)}
           sub={
             assumptions.capacitorCost
-              ? `${formatNumber(savings.capacitorKvar, 1)} kVAR in all`
-              : 'Set ₹/kVAR in Assumptions'
+              ? `${formatNumber(savings.capacitorKvar, 1)} kVAr in all`
+              : 'Set ₹/kVAr in Assumptions'
           }
         />
         <Figure label="Payback period" value={months(savings.paybackMonths)} />

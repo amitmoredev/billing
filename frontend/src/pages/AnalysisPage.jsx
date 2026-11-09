@@ -86,7 +86,7 @@ const COMING_SOON = {
     description: 'See what each site could save in a year, what it would cost to fix and how fast it pays back.',
     features: [
       { icon: IndianRupee, label: 'Avoidable cost' },
-      { icon: Zap, label: 'Capacitor sizing' },
+      { icon: Zap, label: 'kVAr required' },
       { icon: Activity, label: 'Contract demand right-sizing' },
       { icon: Calculator, label: 'Estimated annual savings' },
       { icon: Timer, label: 'Payback period' },

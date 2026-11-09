@@ -22,7 +22,7 @@ const COLUMNS = [
   { key: 'kw', label: 'Load kW', align: 'right', render: (r) => formatNumber(r.kw, 1), sort: (r) => r.kw, csv: (r) => r.kw },
   {
     key: 'kvar',
-    label: 'Capacitor kVAR',
+    label: 'kVAr Required',
     align: 'right',
     render: (r) => formatNumber(r.kvar, 1),
     sort: (r) => r.kvar,
@@ -48,7 +48,7 @@ const COLUMNS = [
 
 /**
  * Bills below the PF target, worst first. The penalty on each is what lifting
- * its PF to target would have saved; kVAR is the capacitor bank that would do it.
+ * its PF to target would have saved; kVAr Required is the capacitor bank that would do it.
  */
 export default function PowerFactorPanel({ summary, belowTarget, pfTarget }) {
   const penalised = belowTarget.filter((bill) => bill.pfPenalty > 0).length;

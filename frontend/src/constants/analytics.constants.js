@@ -20,7 +20,7 @@ export const ASSUMPTION_FIELDS = [
   { name: 'highMdPct', label: 'High MD from', unit: '% of CD', min: 50, max: 100, defaultValue: 90 },
   { name: 'spikePct', label: 'Sudden jump in kWh', unit: '% MoM', min: 1, max: 500, defaultValue: 20 },
   { name: 'cdMarginPct', label: 'Headroom over peak MD', unit: '%', min: 0, max: 50, defaultValue: 10 },
-  { name: 'capacitorCost', label: 'Capacitor cost', unit: '₹/kVAR', min: 0, hint: 'For payback' },
+  { name: 'capacitorCost', label: 'Capacitor cost', unit: '₹/kVAr', min: 0, hint: 'For payback' },
   { name: 'demandRate', label: 'Demand charge', unit: '₹/kVA/mo', min: 0, hint: 'To price a lower CD' },
 ];
 
