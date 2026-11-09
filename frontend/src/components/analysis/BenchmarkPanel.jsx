@@ -63,15 +63,6 @@ const COLUMNS = [
     sort: (r) => r.pfPenalty,
     csv: (r) => r.pfPenalty,
   },
-  {
-    key: 'potentialSavings',
-    label: 'Savings / year',
-    align: 'right',
-    render: (r) => formatInr(r.potentialSavings),
-    sort: (r) => r.potentialSavings,
-    csv: (r) => r.potentialSavings,
-  },
-  { key: 'alerts', label: 'Alerts', align: 'right', render: (r) => r.alerts, sort: (r) => r.alerts, csv: (r) => r.alerts },
   { key: 'bills', label: 'Bills', align: 'right', render: (r) => r.bills, sort: (r) => r.bills, csv: (r) => r.bills },
 ];
 
@@ -89,7 +80,7 @@ export default function BenchmarkPanel({ benchmark }) {
     { label: 'Highest consumption', row: leader(benchmark, (r) => r.kwh), show: (r) => `${formatNumber(r.kwh)} kWh` },
     { label: 'Poorest power factor', row: leader(benchmark, (r) => r.averagePf ?? r.lowestPf?.value, true), show: (r) => formatPf(r.averagePf ?? r.lowestPf?.value) },
     { label: 'Highest demand', row: leader(benchmark, (r) => r.peakMd?.value), show: (r) => `${formatNumber(r.peakMd.value, 1)} kVA` },
-    { label: 'Largest savings potential', row: leader(benchmark, (r) => r.potentialSavings), show: (r) => `${formatInr(r.potentialSavings)} / yr` },
+    { label: 'Closest to contract demand', row: leader(benchmark, (r) => r.maxUtilisationPct), show: (r) => `Peak at ${formatNumber(r.maxUtilisationPct, 1)}% of CD` },
   ];
 
   return (

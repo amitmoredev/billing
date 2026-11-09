@@ -1,16 +1,32 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Activity, BellRing, ChartColumn, Gauge, LayoutDashboard, MapPin, PiggyBank, SlidersHorizontal, TriangleAlert } from 'lucide-react';
+import {
+  Activity,
+  BellRing,
+  Calculator,
+  ChartColumn,
+  FileX2,
+  Gauge,
+  IndianRupee,
+  LayoutDashboard,
+  MapPin,
+  MessageCircle,
+  PiggyBank,
+  SlidersHorizontal,
+  Timer,
+  TrendingUp,
+  TriangleAlert,
+  Zap,
+} from 'lucide-react';
 import AnalysisFilters from '../components/analysis/AnalysisFilters.jsx';
 import AssumptionsPanel from '../components/analysis/AssumptionsPanel.jsx';
 import KpiTiles from '../components/analysis/KpiTiles.jsx';
 import TrendPanel from '../components/analysis/TrendPanel.jsx';
 import PowerFactorPanel from '../components/analysis/PowerFactorPanel.jsx';
-import SavingsPanel from '../components/analysis/SavingsPanel.jsx';
 import DemandPanel from '../components/analysis/DemandPanel.jsx';
-import AlertsPanel from '../components/analysis/AlertsPanel.jsx';
 import BenchmarkPanel from '../components/analysis/BenchmarkPanel.jsx';
-import { AlertSummaryCard, FinancialCard, RankCard } from '../components/analysis/OverviewCards.jsx';
+import ComingSoon from '../components/analysis/ComingSoon.jsx';
+import { RankCard } from '../components/analysis/OverviewCards.jsx';
 import { demandRows, topSitesRows, worstPfRows } from '../components/analysis/rankRows.js';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -43,12 +59,40 @@ const saveAssumptions = (values) => {
 
 const TABS = [
   { value: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { value: 'alerts', label: 'Alerts', icon: BellRing },
+  { value: 'alerts', label: 'Alerts', icon: BellRing, soon: true },
   { value: 'pf', label: 'Power factor', icon: Gauge },
   { value: 'demand', label: 'Contract demand', icon: Activity },
-  { value: 'savings', label: 'Savings', icon: PiggyBank },
+  { value: 'savings', label: 'Savings', icon: PiggyBank, soon: true },
   { value: 'sites', label: 'Sites', icon: MapPin },
 ];
+
+/** The tabs not switched on yet, and what each will offer. */
+const COMING_SOON = {
+  alerts: {
+    icon: BellRing,
+    title: 'Smart alerts',
+    description: 'Get told the moment a site needs attention, before it shows up on the next bill.',
+    features: [
+      { icon: Gauge, label: 'PF below target' },
+      { icon: Activity, label: 'Contract demand exceeded' },
+      { icon: TrendingUp, label: 'Sudden consumption jumps' },
+      { icon: FileX2, label: 'Missing bills' },
+      { icon: MessageCircle, label: 'WhatsApp & email notifications' },
+    ],
+  },
+  savings: {
+    icon: PiggyBank,
+    title: 'Savings finder',
+    description: 'See what each site could save in a year, what it would cost to fix and how fast it pays back.',
+    features: [
+      { icon: IndianRupee, label: 'Avoidable cost' },
+      { icon: Zap, label: 'Capacitor sizing' },
+      { icon: Activity, label: 'Contract demand right-sizing' },
+      { icon: Calculator, label: 'Estimated annual savings' },
+      { icon: Timer, label: 'Payback period' },
+    ],
+  },
+};
 
 const plural = (count, word) => `${formatNumber(count)} ${word}${count === 1 ? '' : 's'}`;
 
@@ -72,7 +116,6 @@ export default function AnalysisPage() {
     to: searchParams.get('to') ?? '',
   };
   const tab = searchParams.get('tab') ?? 'overview';
-  const alertType = searchParams.get('alert') ?? '';
 
   const setParams = (changes) =>
     setSearchParams(
@@ -86,7 +129,7 @@ export default function AnalysisPage() {
       },
       { replace: true }
     );
-  const openTab = (value, extra = {}) => setParams({ tab: value === 'overview' ? '' : value, alert: '', ...extra });
+  const openTab = (value, extra = {}) => setParams({ tab: value === 'overview' ? '' : value, ...extra });
 
   const [assumptions, setAssumptions] = useState(loadAssumptions);
   const [editingAssumptions, setEditingAssumptions] = useState(false);
@@ -145,9 +188,8 @@ export default function AnalysisPage() {
         // scrolls sideways on a phone rather than wrapping onto two rows.
         <nav aria-label="Analysis sections" className="overflow-x-auto">
           <div role="tablist" className="inline-flex min-w-max gap-1 rounded-xl bg-sunken p-1 ring-1 ring-inset ring-line">
-            {TABS.map(({ value, label, icon: IconComponent }) => {
+            {TABS.map(({ value, label, icon: IconComponent, soon }) => {
               const active = tab === value;
-              const count = value === 'alerts' ? data.alerts.items.length : null;
               return (
                 <button
                   key={value}
@@ -160,14 +202,11 @@ export default function AnalysisPage() {
                 >
                   <IconComponent className={`size-4 ${active ? 'text-accent-fg' : ''}`} />
                   {label}
-                  {count ? (
-                    <span
-                      className={`num min-w-5 rounded-full px-1.5 py-0.5 text-center text-[11px] leading-none
-                        ${active ? 'bg-accent text-on-accent' : 'bg-warn-soft text-warn-fg ring-1 ring-inset ring-warn-line'}`}
-                    >
-                      {count}
+                  {soon && (
+                    <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-accent-fg ring-1 ring-inset ring-accent-line">
+                      Soon
                     </span>
-                  ) : null}
+                  )}
                 </button>
               );
             })}
@@ -181,15 +220,13 @@ export default function AnalysisPage() {
         error={error}
         refreshing={isFetching}
         tab={tab}
-        alertType={alertType}
         openTab={openTab}
-        setAlertType={(type) => setParams({ alert: type })}
       />
     </div>
   );
 }
 
-function Body({ data, loading, error, refreshing, tab, alertType, openTab, setAlertType }) {
+function Body({ data, loading, error, refreshing, tab, openTab }) {
   const paths = useSitePaths();
 
   if (loading) {
@@ -227,21 +264,7 @@ function Body({ data, loading, error, refreshing, tab, alertType, openTab, setAl
     <div key={tab} className={`page-in space-y-6 transition-opacity ${refreshing ? 'opacity-60' : ''}`}>
       {tab === 'overview' && (
         <>
-          <div className="grid gap-4 xl:grid-cols-3">
-            <div className="min-w-0 xl:col-span-2">
-              <TrendPanel summary={data.summary} trend={data.trend} comparison={data.comparison} />
-            </div>
-            <div className="grid content-start gap-4 sm:grid-cols-2 xl:grid-cols-1">
-              <FinancialCard
-                summary={data.summary}
-                savings={data.savings}
-                assumptions={data.assumptions}
-                connections={data.connections}
-                onOpen={() => openTab('savings')}
-              />
-              <AlertSummaryCard alerts={data.alerts} onOpen={(type) => openTab('alerts', { alert: type })} />
-            </div>
-          </div>
+          <TrendPanel summary={data.summary} trend={data.trend} comparison={data.comparison} />
 
           <KpiTiles data={data} />
 
@@ -270,7 +293,6 @@ function Body({ data, loading, error, refreshing, tab, alertType, openTab, setAl
         </>
       )}
 
-      {tab === 'alerts' && <AlertsPanel alerts={data.alerts} type={alertType} onTypeChange={setAlertType} />}
 
       {tab === 'pf' && (
         <PowerFactorPanel summary={data.summary} belowTarget={data.powerFactor.belowTarget} pfTarget={target} />
@@ -278,16 +300,10 @@ function Body({ data, loading, error, refreshing, tab, alertType, openTab, setAl
 
       {tab === 'demand' && <DemandPanel connections={data.connections} assumptions={data.assumptions} />}
 
-      {tab === 'savings' && (
-        <SavingsPanel
-          summary={data.summary}
-          savings={data.savings}
-          connections={data.connections}
-          assumptions={data.assumptions}
-        />
-      )}
 
       {tab === 'sites' && <BenchmarkPanel benchmark={data.benchmark} />}
+
+      {COMING_SOON[tab] && <ComingSoon {...COMING_SOON[tab]} />}
 
     </div>
   );

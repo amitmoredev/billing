@@ -3,7 +3,7 @@ import DataTable from './DataTable.jsx';
 import Panel, { CsvButton, Pill } from './Panel.jsx';
 import { BillLink, ConnectionCell } from './cells.jsx';
 import { CD_ACTIONS } from '../../constants/analytics.constants.js';
-import { connectionLabel, formatInr, formatMonth, formatNumber, siteLabel } from '../../utils/format.js';
+import { connectionLabel, formatMonth, formatNumber, siteLabel } from '../../utils/format.js';
 
 /** How much of the contract demand the peak used, as a bar: amber when high, red when over. */
 function Utilisation({ pct, highPct }) {
@@ -96,14 +96,6 @@ const columnsFor = (highPct) => [
     render: (r) => <Pill style={CD_ACTIONS[r.demand.action].style}>{CD_ACTIONS[r.demand.action].label}</Pill>,
     sort: (r) => r.demand.action,
     csv: (r) => CD_ACTIONS[r.demand.action].label,
-  },
-  {
-    key: 'saving',
-    label: 'Savings / year',
-    align: 'right',
-    render: (r) => formatInr(r.demand.potentialSavings),
-    sort: (r) => r.demand.potentialSavings,
-    csv: (r) => r.demand.potentialSavings,
   },
 ];
 
