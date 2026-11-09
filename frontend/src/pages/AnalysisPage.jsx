@@ -137,6 +137,10 @@ export default function AnalysisPage() {
     setAssumptions(values);
     saveAssumptions(values);
   };
+  // Saved values outlive the visit, so the button says when they differ from the defaults.
+  const customised = Object.keys(DEFAULT_ASSUMPTIONS).some(
+    (key) => String(assumptions[key] ?? '') !== String(DEFAULT_ASSUMPTIONS[key] ?? '')
+  );
 
   const range = toRange(filters);
   const invalidRange = range.from && range.to && range.from > range.to;
@@ -175,6 +179,14 @@ export default function AnalysisPage() {
           aria-expanded={editingAssumptions}
         >
           Assumptions
+          {customised && (
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide
+                ${editingAssumptions ? 'bg-white/20 text-on-accent' : 'bg-warn-soft text-warn-fg ring-1 ring-inset ring-warn-line'}`}
+            >
+              Custom
+            </span>
+          )}
         </Button>
       </header>
 

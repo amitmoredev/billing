@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Bill } from '../models/bill.model.js';
+import { BILL_STATUS, Bill } from '../models/bill.model.js';
 import { escapeRegex } from '../utils/regex.js';
 
 // Data layer: Mongo queries only. No business rules, no HTTP concepts.
@@ -53,3 +53,29 @@ export const countByStatus = ({ site } = {}) =>
     { $match: siteMatch(site ? new mongoose.Types.ObjectId(site) : site) },
     { $group: { _id: '$status', count: { $sum: 1 } } },
   ]);
+
+// What an export needs of a bill's site: its label and DISCOM.
+const EXPORT_SITE_FIELDS = 'name code discom';
+
+/**
+ * Verified bills with a bill month in `from`..`to` (YYYY-MM, either open),
+ * optionally at one site — the rows of an Excel export.
+ */
+export const findVerifiedForExport = ({ from, to, site } = {}) => {
+  const month = { $nin: [null, ''] };
+  if (from) month.$gte = from;
+  if (to) month.$lte = to;
+  return Bill.find({ status: BILL_STATUS.SUBMITTED, 'parameters.billMonth': month, ...siteMatch(site) })
+    .select('site file.originalName parameters submittedAt updatedAt')
+    .populate('site', EXPORT_SITE_FIELDS)
+    .lean();
+};
+
+/** Every bill month that has a verified bill, oldest first; `site` narrows it to one site. */
+export const distinctVerifiedMonths = async ({ site } = {}) => {
+  const months = await Bill.distinct('parameters.billMonth', {
+    status: BILL_STATUS.SUBMITTED,
+    ...siteMatch(site),
+  });
+  return months.filter(Boolean).sort();
+};

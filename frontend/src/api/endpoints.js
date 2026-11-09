@@ -18,6 +18,8 @@ export const ENDPOINTS = {
     confirmUpload: (id) => `/bills/${id}/uploads/confirm`,
     saveParameters: (id) => `/bills/${id}/parameters`,
     submitParameters: (id) => `/bills/${id}/parameters/submit`,
+    export: () => '/bills/export',
+    months: () => '/bills/months',
   },
 
   sites: {

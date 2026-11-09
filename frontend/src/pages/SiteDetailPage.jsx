@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Inbox, LayoutGrid, Lock, MapPin, MapPinOff, Pencil, Trash2, Zap } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet, Inbox, LayoutGrid, Lock, MapPin, MapPinOff, Pencil, Trash2, Zap } from 'lucide-react';
 import Breadcrumbs from '../components/ui/Breadcrumbs.jsx';
 import Button from '../components/ui/Button.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
@@ -8,6 +8,7 @@ import EmptyState from '../components/ui/EmptyState.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 import Tooltip from '../components/ui/Tooltip.jsx';
 import SiteFormModal from '../components/sites/SiteFormModal.jsx';
+import ExportBillsModal from '../components/bills/ExportBillsModal.jsx';
 import UploadDropzone from '../components/bills/UploadDropzone.jsx';
 import BillStats from '../components/bills/BillStats.jsx';
 import BillFilters from '../components/bills/BillFilters.jsx';
@@ -44,6 +45,7 @@ export default function SiteDetailPage() {
   const [filters, setFilters] = useState({ status: '', search: '' });
   const debouncedSearch = useDebouncedValue(filters.search, 350);
   const [editing, setEditing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const { current, upload } = useBillUpload();
@@ -122,6 +124,7 @@ export default function SiteDetailPage() {
           mayDelete={can(ACTIONS.DELETE, SUBJECTS.SITE, site)}
           onEdit={() => setEditing(true)}
           onDelete={() => setConfirmingDelete(true)}
+          onExport={() => setExporting(true)}
         />
       )}
 
@@ -157,6 +160,7 @@ export default function SiteDetailPage() {
       />
 
       {editing && <SiteFormModal site={site} onClose={() => setEditing(false)} />}
+      {exporting && <ExportBillsModal siteId={site.id} onClose={() => setExporting(false)} />}
 
       {confirmingDelete && (
         <ConfirmDialog
@@ -185,7 +189,7 @@ const creatorLabel = (creator, userId) => {
   return creator.name ? `Added by ${creator.name}` : '';
 };
 
-function SiteHeader({ site, userId, mayEdit, mayDelete, onEdit, onDelete }) {
+function SiteHeader({ site, userId, mayEdit, mayDelete, onEdit, onDelete, onExport }) {
   const addedBy = creatorLabel(site.createdBy, userId);
   const details = [
     site.discom && { icon: Zap, text: site.discom },
@@ -226,6 +230,9 @@ function SiteHeader({ site, userId, mayEdit, mayDelete, onEdit, onDelete }) {
         </div>
 
         <div className="flex shrink-0 gap-2">
+          <Button variant="secondary" size="sm" icon={FileSpreadsheet} onClick={onExport} aria-label="Export to Excel">
+            <span className="hidden sm:inline">Export</span>
+          </Button>
           {mayEdit && (
             <Button variant="secondary" size="sm" icon={Pencil} onClick={onEdit}>
               Edit

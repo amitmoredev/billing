@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { MapPin, MapPinPlus, SearchX, TriangleAlert } from 'lucide-react';
+import { FileSpreadsheet, MapPin, MapPinPlus, SearchX, TriangleAlert } from 'lucide-react';
 import SiteCard, { UnassignedCard } from '../components/sites/SiteCard.jsx';
 import SiteFormModal from '../components/sites/SiteFormModal.jsx';
+import ExportBillsModal from '../components/bills/ExportBillsModal.jsx';
 import BillStats from '../components/bills/BillStats.jsx';
 import Button from '../components/ui/Button.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
@@ -24,6 +25,7 @@ export default function SitesPage() {
   const [search, setSearch] = useState('');
   const [editor, setEditor] = useState(null); // { site } while the form is open; site is null when adding
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   const { data: sites = [], isLoading, error } = useSites();
   const { data: unassigned } = useUnassignedBills();
@@ -70,9 +72,14 @@ export default function SitesPage() {
             Every site you track. Open one to upload and review its bills.
           </p>
         </div>
-        <Button icon={MapPinPlus} onClick={openAdd}>
-          Add site
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" icon={FileSpreadsheet} onClick={() => setExporting(true)}>
+            Export to Excel
+          </Button>
+          <Button icon={MapPinPlus} onClick={openAdd}>
+            Add site
+          </Button>
+        </div>
       </header>
 
       <BillStats stats={stats} />
@@ -110,6 +117,7 @@ export default function SitesPage() {
       />
 
       {editor && <SiteFormModal site={editor.site} onClose={() => setEditor(null)} />}
+      {exporting && <ExportBillsModal onClose={() => setExporting(false)} />}
 
       {pendingDelete && (
         <ConfirmDialog

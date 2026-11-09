@@ -90,3 +90,10 @@ export const statsQuerySchema = z.object({ site: siteFilter });
 export const idParamSchema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid bill id'),
 });
+
+/** Excel export: a site (or NO_SITE) and a month range, either end open. */
+export const exportQuerySchema = z
+  .object({ site: siteFilter, from: optionalMonth, to: optionalMonth })
+  .refine((q) => !q.from || !q.to || q.from <= q.to, { path: ['to'], message: 'End month is before start month' });
+
+export const monthsQuerySchema = z.object({ site: siteFilter });

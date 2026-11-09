@@ -10,6 +10,7 @@ export const billKeys = {
   detail: (id) => ['bills', 'detail', id],
   allStats: () => ['bills', 'stats'],
   stats: (params) => ['bills', 'stats', params],
+  months: (params) => ['bills', 'months', params],
 };
 
 /** Bills per request; the list asks for the next batch as the reader scrolls down. */
@@ -37,6 +38,16 @@ export const useBill = (id) =>
     enabled: Boolean(id),
     staleTime: 5 * 60 * 1000, // signed view URL is valid for an hour
   });
+
+/** Bill months with verified bills (oldest first), for the export picker. */
+export const useBillMonths = (params) =>
+  useQuery({
+    queryKey: billKeys.months(params),
+    queryFn: () => billService.listMonths(params),
+  });
+
+/** Downloads an Excel export; `data` is the saved file's name. */
+export const useExportBills = () => useMutation({ mutationFn: billService.exportBills });
 
 export const useBillStats = (params) =>
   useQuery({

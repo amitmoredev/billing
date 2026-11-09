@@ -6,8 +6,10 @@ import { ACTIONS, SUBJECTS } from '../policies/permissions.js';
 import {
   billDraftSchema,
   billSubmitSchema,
+  exportQuerySchema,
   idParamSchema,
   listQuerySchema,
+  monthsQuerySchema,
   presignSchema,
   statsQuerySchema,
 } from '../validators/bill.validator.js';
@@ -38,6 +40,10 @@ router.post(
   validate(idParamSchema, 'params'),
   billController.confirmUpload
 );
+
+// Excel export in the client's workbook layout, and the months it can cover.
+router.get('/export', allow(ACTIONS.READ), validate(exportQuerySchema, 'query'), billController.exportBills);
+router.get('/months', allow(ACTIONS.READ), validate(monthsQuerySchema, 'query'), billController.listMonths);
 
 router.get('/', allow(ACTIONS.READ), validate(listQuerySchema, 'query'), billController.listBills);
 router.get('/:id', allow(ACTIONS.READ), validate(idParamSchema, 'params'), billController.getBill);
