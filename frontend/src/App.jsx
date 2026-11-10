@@ -10,6 +10,7 @@ import AnalysisPage from './pages/AnalysisPage.jsx';
 import BillDetailPage, { LegacyBillRedirect } from './pages/BillDetailPage.jsx';
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx';
 import UsersPage from './pages/admin/UsersPage.jsx';
+import BillFieldsPage from './pages/admin/BillFieldsPage.jsx';
 import { ADMIN_CONSOLE } from './constants/permission.constants.js';
 import { ADMIN_NAV, APP_NAV } from './constants/navigation.constants.js';
 
@@ -61,6 +62,7 @@ export default function App() {
             <Route index element={<Navigate to="users" replace />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="sites">{siteRoutes}</Route>
+            <Route path="parameters" element={<BillFieldsPage />} />
             <Route path="analysis" element={<AnalysisPage />} />
           </Route>
         </Route>

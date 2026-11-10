@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { FIELD_TYPES, SYSTEM_FIELDS } from '../constants/bill-fields.js';
 
 export const BILL_STATUS = {
   PENDING_UPLOAD: 'PENDING_UPLOAD', // row reserved, bytes not in R2 yet
@@ -6,24 +7,18 @@ export const BILL_STATUS = {
   SUBMITTED: 'SUBMITTED', // parameters filled and submitted
 };
 
-// Every extractable field lives here. Adding a param = one line, no migration.
+const toPath = ({ type, min, max }) =>
+  type === FIELD_TYPES.NUMBER
+    ? { type: Number, ...(min != null && { min }), ...(max != null && { max }) }
+    : { type: String, trim: true };
+
+// One value per parameter, keyed by its field key. Built-in parameters are
+// typed here from constants/bill-fields.js; parameters added from the admin
+// console (`strict: false`) are checked against their BillField definition
+// before they reach this schema, so a new one needs no code and no migration.
 const parametersSchema = new mongoose.Schema(
-  {
-    customerNumber: { type: String, trim: true },
-    consumerName: { type: String, trim: true },
-    sanctionedLoad: { type: Number, min: 0 }, // kW
-    contractDemand: { type: Number, min: 0 }, // kVA
-    connectedLoad: { type: Number, min: 0 }, // kW
-    billMonth: { type: String, trim: true }, // YYYY-MM
-    kwhConsumption: { type: Number, min: 0 },
-    kvahConsumption: { type: Number, min: 0 },
-    kvaMd: { type: Number, min: 0 }, // maximum demand in kVA
-    kwMd: { type: Number, min: 0 }, // maximum demand in kW
-    powerFactor: { type: Number, min: 0, max: 1 },
-    powerFactorPenalty: { type: Number }, // INR; can be a rebate (negative)
-    currentBillMonth: { type: String, trim: true }, // YYYY-MM
-  },
-  { _id: false }
+  Object.fromEntries(SYSTEM_FIELDS.map((field) => [field.key, toPath(field)])),
+  { _id: false, strict: false }
 );
 
 const fileSchema = new mongoose.Schema(

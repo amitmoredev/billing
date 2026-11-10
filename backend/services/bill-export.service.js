@@ -1,13 +1,17 @@
 import ExcelJS from 'exceljs';
 import * as billData from '../data/bill.data.js';
+import * as billFieldService from './bill-field.service.js';
+import { FIELD_TYPES } from '../constants/bill-fields.js';
 import { ApiError } from '../utils/api-error.js';
+import { appliesToDiscom } from '../utils/bill-fields.js';
 
 // Excel export of verified bills, laid out like the client's own "Bill
 // Analysis" workbook (its "August Master" sheet): one sheet per bill month,
 // their column names in their order, Montserrat, bordered cells, totals in
 // row 1 and the header frozen in row 2. Only fields the app captures are
 // exported — their Meter Number, Unit Rate, Monthly Bill and Potential
-// Savings columns are left out until bills carry those values.
+// Savings columns are left out until bills carry those values. Fields added
+// from the admin console follow their columns, in form order.
 
 const FONT = 'Montserrat';
 // Indian digit grouping (12,34,567.00), as their workbook formats totals.
@@ -38,8 +42,8 @@ const COLUMNS = [
   { key: 'kvar', header: 'kVAr Required', width: 13, numFmt: '0.00' },
 ];
 
-const letterOf = (key) => {
-  let n = FIRST_COLUMN + COLUMNS.findIndex((column) => column.key === key);
+const letterOf = (key, columns = COLUMNS) => {
+  let n = FIRST_COLUMN + columns.findIndex((column) => column.key === key);
   let letters = '';
   while (n > 0) {
     letters = String.fromCharCode(65 + ((n - 1) % 26)) + letters;
@@ -87,22 +91,61 @@ const siteName = (site) => (site ? [site.name, site.code].filter(Boolean).join('
 const billUrl = (bill, appUrl) =>
   appUrl ? `${appUrl}/sites/${bill.site?._id ?? 'unassigned'}/bills/${bill._id}` : null;
 
-const addMonthSheet = (workbook, month, bills, appUrl) => {
+/** The admin's fields that belong in the export, in form order (sections first, then position). */
+const exportedFields = (fields, groups = []) => {
+  const groupOrder = new Map(groups.map((group, index) => [group.key, index]));
+  return fields
+    .filter((field) => !field.system && !field.archived && field.inExport !== false)
+    .sort(
+      (a, b) =>
+        (groupOrder.get(a.group) ?? Infinity) - (groupOrder.get(b.group) ?? Infinity) || a.order - b.order
+    );
+};
+
+const hasValue = (value) => value !== undefined && value !== null && value !== '';
+
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** A column per admin field that any bill on the sheet takes (by DISCOM) or holds a value for. */
+const fieldColumns = (fields, bills) =>
+  fields
+    .filter((field) =>
+      bills.some((bill) => appliesToDiscom(field, bill.site?.discom) || hasValue(bill.parameters?.[field.key]))
+    )
+    .map((field) => ({
+      key: `field:${field.key}`,
+      header: field.unit ? `${field.label} (${field.unit})` : field.label,
+      width: field.type === FIELD_TYPES.TEXT ? 20 : 13,
+      total: field.type === FIELD_TYPES.NUMBER ? 9 : undefined,
+      value: (bill) => {
+        const value = bill.parameters?.[field.key];
+        if (field.type === FIELD_TYPES.NUMBER) return number(value);
+        if (field.type === FIELD_TYPES.MONTH && MONTH_PATTERN.test(value ?? '')) return monthTitle(value);
+        return hasValue(value) ? String(value) : '';
+      },
+    }));
+
+const addMonthSheet = (workbook, month, bills, appUrl, fields) => {
   const sheet = workbook.addWorksheet(`${monthTitle(month)} Master`, {
     views: [{ state: 'frozen', ySplit: HEADER_ROW }],
   });
   const lastRow = FIRST_DATA_ROW + bills.length - 1;
+  const columns = [...COLUMNS, ...fieldColumns(fields, bills)];
+  const valuesOf = (bill) => ({
+    ...rowValues(bill),
+    ...Object.fromEntries(columns.filter((c) => c.value).map((c) => [c.key, c.value(bill)])),
+  });
 
   sheet.getColumn(1).width = 8.88;
-  COLUMNS.forEach((column, index) => {
+  columns.forEach((column, index) => {
     sheet.getColumn(FIRST_COLUMN + index).width = column.width;
   });
 
   // Row 1: running totals that follow any filter the reader applies (SUBTOTAL skips hidden rows).
   const totals = sheet.getRow(1);
-  for (const column of COLUMNS.filter((c) => c.total)) {
-    const letter = letterOf(column.key);
-    const values = bills.map((bill) => rowValues(bill)[column.key]);
+  for (const column of columns.filter((c) => c.total)) {
+    const letter = letterOf(column.key, columns);
+    const values = bills.map((bill) => valuesOf(bill)[column.key]);
     const result =
       column.total === 3
         ? values.filter((value) => value != null && value !== '').length
@@ -116,7 +159,7 @@ const addMonthSheet = (workbook, month, bills, appUrl) => {
 
   const header = sheet.getRow(HEADER_ROW);
   header.height = 32;
-  COLUMNS.forEach((column, index) => {
+  columns.forEach((column, index) => {
     const cell = header.getCell(FIRST_COLUMN + index);
     cell.value = column.header;
     cell.font = { name: FONT, size: 10, bold: true };
@@ -127,10 +170,10 @@ const addMonthSheet = (workbook, month, bills, appUrl) => {
   bills.forEach((bill, index) => {
     const rowNumber = FIRST_DATA_ROW + index;
     const row = sheet.getRow(rowNumber);
-    const values = { ...rowValues(bill), serial: index + 1 };
+    const values = { ...valuesOf(bill), serial: index + 1 };
     const url = billUrl(bill, appUrl);
 
-    COLUMNS.forEach((column, columnIndex) => {
+    columns.forEach((column, columnIndex) => {
       const cell = row.getCell(FIRST_COLUMN + columnIndex);
       const value = values[column.key];
       cell.font = { name: FONT, size: 10 };
@@ -172,10 +215,12 @@ const rowValues = (bill) => {
 
 /**
  * The workbook for `bills` (lean docs, `site` populated): a sheet per bill
- * month, oldest first, rows sorted by site then consumer number. Pure — no
- * database — so tests build it straight from bills.
+ * month, oldest first, rows sorted by site then consumer number. `fields` and
+ * `groups` are the parameter form's definitions; the admin's fields become
+ * extra columns. Pure — no database — so tests build it straight from bills.
  */
-export const buildWorkbook = (bills, { appUrl } = {}) => {
+export const buildWorkbook = (bills, { appUrl, fields = [], groups = [] } = {}) => {
+  const extra = exportedFields(fields, groups);
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Energy Intelligence Platform';
   workbook.created = new Date();
@@ -193,7 +238,7 @@ export const buildWorkbook = (bills, { appUrl } = {}) => {
     siteName(a.site).localeCompare(siteName(b.site)) ||
     String(a.parameters.customerNumber ?? '').localeCompare(String(b.parameters.customerNumber ?? ''));
   for (const month of [...byMonth.keys()].sort()) {
-    addMonthSheet(workbook, month, byMonth.get(month).sort(order), appUrl);
+    addMonthSheet(workbook, month, byMonth.get(month).sort(order), appUrl, extra);
   }
   return workbook;
 };
@@ -208,10 +253,13 @@ const fileNameFor = (months, site) => {
 
 /** The export file for verified bills in `from`..`to` at `site`; 404 when nothing matches. */
 export const exportBills = async ({ from, to, site }, { appUrl } = {}) => {
-  const bills = await billData.findVerifiedForExport({ from, to, site });
+  const [bills, { fields, groups }] = await Promise.all([
+    billData.findVerifiedForExport({ from, to, site }),
+    billFieldService.listDefinitions(),
+  ]);
   if (!bills.length) throw ApiError.notFound('No verified bills match this selection');
 
-  const workbook = buildWorkbook(bills, { appUrl });
+  const workbook = buildWorkbook(bills, { appUrl, fields, groups });
   const months = [...new Set(bills.map((b) => b.parameters.billMonth))].sort();
   const buffer = await workbook.xlsx.writeBuffer();
   return { buffer, fileName: fileNameFor(months, site ? bills[0].site : null) };

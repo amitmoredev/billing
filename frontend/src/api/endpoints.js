@@ -22,6 +22,18 @@ export const ENDPOINTS = {
     months: () => '/bills/months',
   },
 
+  billFields: {
+    list: () => '/bill-fields',
+    create: () => '/bill-fields',
+    update: (id) => `/bill-fields/${id}`,
+    remove: (id) => `/bill-fields/${id}`,
+    move: (id) => `/bill-fields/${id}/move`,
+    createGroup: () => '/bill-fields/groups',
+    updateGroup: (id) => `/bill-fields/groups/${id}`,
+    removeGroup: (id) => `/bill-fields/groups/${id}`,
+    moveGroup: (id) => `/bill-fields/groups/${id}/move`,
+  },
+
   sites: {
     list: () => '/sites',
     create: () => '/sites',

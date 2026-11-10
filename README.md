@@ -131,13 +131,31 @@ After the first deploy:
 | PATCH | `/api/bills/:id/parameters` | save draft |
 | POST | `/api/bills/:id/parameters/submit` | validate + submit |
 | DELETE | `/api/bills/:id` | delete object + row |
+| GET | `/api/bill-fields` | parameter form: `{ groups, fields }` |
+| POST / PATCH / DELETE | `/api/bill-fields[/:id]` | admin: add / edit, archive / delete a field |
+| POST | `/api/bill-fields/:id/move` | admin: move a field `up` or `down` |
+| POST / PATCH / DELETE | `/api/bill-fields/groups[/:id]` | admin: sections; `…/:id/move` reorders |
 
 Responses use one envelope: `{ success, data }` or `{ success, error: { message, details } }`.
 
-## Adding a parameter
+## Bill parameters
 
-1. `backend/models/bill.model.js` — add the field to `parametersSchema`
-2. `backend/validators/bill.validator.js` — add it to `parametersDraftSchema`
-3. `frontend/src/constants/bill.constants.js` — add an entry to `PARAMETER_GROUPS`
+The parameter form is data, not code. Admins manage it at `/admin/parameters`
+(or "Add parameter" on any bill's form): add fields (number, text or month)
+and sections, reorder, relabel, mark required, archive. A field limited to
+some DISCOMs shows only on bills whose site has one of them; a field with no
+DISCOMs shows on every bill.
 
-No migration; the form renders from the constants list.
+- Values live on the bill under `parameters.<key>`. The key is made from the
+  label once and never changes; the type never changes either.
+- A field that bills have values for can only be archived, never deleted.
+  Moving a bill to another DISCOM's site keeps its values for fields that
+  don't apply there.
+- Admin fields are added to the Excel export after the client's columns.
+
+**Built-in parameters** (`backend/constants/bill-fields.js`) are the ones the
+analysis and export read by key. Admins can relabel and move them, nothing
+else. To add one: add an entry there — the API copies the list into the
+database on boot. No migration. If an admin field already has that key and
+type it becomes the built-in one, values and all; another type stops the API
+from starting.

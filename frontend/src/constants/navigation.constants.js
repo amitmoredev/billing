@@ -1,4 +1,4 @@
-import { ChartColumn, MapPin, Users } from 'lucide-react';
+import { ChartColumn, ListChecks, MapPin, Users } from 'lucide-react';
 
 // Each signed-in area is the same shell with its own menu. Adding a page to
 // an area is one entry here plus its route in App.jsx. `except` keeps an item
@@ -27,6 +27,7 @@ export const ADMIN_NAV = {
       items: [
         { to: '/admin/users', label: 'User management', icon: Users },
         { to: '/admin/sites', label: 'Sites & Bills', icon: MapPin },
+        { to: '/admin/parameters', label: 'Bill parameters', icon: ListChecks },
         { to: '/admin/analysis', label: 'Analysis', icon: ChartColumn },
       ],
     },

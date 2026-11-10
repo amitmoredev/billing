@@ -1,21 +1,83 @@
 import { useState } from 'react';
-import { Plus, Save, Send } from 'lucide-react';
+import { ListPlus, Plus, Save, Send, TriangleAlert } from 'lucide-react';
 import TextField from '../ui/TextField.jsx';
 import SelectField from '../ui/SelectField.jsx';
 import Button from '../ui/Button.jsx';
+import EmptyState from '../ui/EmptyState.jsx';
+import Spinner from '../ui/Spinner.jsx';
 import SiteFormModal from '../sites/SiteFormModal.jsx';
-import { PARAMETER_GROUPS } from '../../constants/bill.constants.js';
+import FieldFormModal from '../bill-fields/FieldFormModal.jsx';
+import { FIELD_TYPES } from '../../constants/bill.constants.js';
+import { ACTIONS, SUBJECTS } from '../../constants/permission.constants.js';
 import { useParameterForm } from '../../hooks/useParameterForm.js';
+import { useBillFields } from '../../queries/bill-field.query.js';
+import { useSession } from '../../queries/auth.query.js';
 import { useSites } from '../../queries/site.query.js';
 import { useToast } from '../../context/toast.context.js';
+import { fieldHint, fieldsForDiscom, toSections } from '../../utils/bill-fields.js';
 import { siteLabel } from '../../utils/format.js';
 
-/** Right pane: the extraction form for one bill. */
+/** Right pane: the extraction form for one bill, once its fields have loaded. */
 export default function ParameterForm({ bill }) {
-  const form = useParameterForm(bill);
+  const { data: definitions, isLoading, error } = useBillFields();
+
+  if (isLoading) {
+    return (
+      <div className="grid h-full place-items-center">
+        <Spinner className="size-7" />
+      </div>
+    );
+  }
+  if (error) {
+    return <EmptyState icon={TriangleAlert} title="Could not load the form" description={error.message} />;
+  }
+  return <Form bill={bill} definitions={definitions} />;
+}
+
+/** One input per field, by type. Number inputs take any decimal the bill prints. */
+function ParameterInput({ field, value, error, onChange }) {
+  const isNumber = field.type === FIELD_TYPES.NUMBER;
+  return (
+    <TextField
+      label={field.label}
+      type={field.type}
+      unit={field.unit || undefined}
+      hint={fieldHint(field)}
+      step={isNumber ? (field.step ?? 'any') : undefined}
+      min={isNumber ? (field.min ?? undefined) : undefined}
+      max={isNumber ? (field.max ?? undefined) : undefined}
+      required={field.required}
+      error={error}
+      value={value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={field.type === FIELD_TYPES.MONTH ? 'YYYY-MM' : '—'}
+    />
+  );
+}
+
+function Form({ bill, definitions }) {
   const toast = useToast();
+  const { can } = useSession();
   const { data: sites = [], isLoading: sitesLoading } = useSites();
   const [addingSite, setAddingSite] = useState(false);
+  const [addingField, setAddingField] = useState(null); // { group } while the dialog is open
+
+  // The form follows the picked site's DISCOM: fields for every DISCOM, plus its own.
+  const discomOf = (siteId) => sites.find((site) => site.id === siteId)?.discom ?? '';
+  const form = useParameterForm(bill, {
+    fieldsForSite: (siteId) => fieldsForDiscom(definitions.fields, discomOf(siteId)),
+  });
+  const discom = discomOf(form.values.site);
+  const sections = toSections(definitions.groups, form.fields);
+  const mayAddField = can(ACTIONS.CREATE, SUBJECTS.BILL_FIELD);
+
+  // Values the bill holds for fields not on its form now — archived, or for
+  // another DISCOM. Shown so nothing recorded is invisible; the API keeps them.
+  const shown = new Set(form.fields.map((field) => field.key));
+  const labels = new Map(definitions.fields.map((field) => [field.key, field.label]));
+  const others = Object.entries(bill.parameters ?? {}).filter(
+    ([key, value]) => !shown.has(key) && value !== null && value !== undefined && value !== ''
+  );
 
   const handle = async (action, successTitle, successBody) => {
     const ok = await action();
@@ -39,6 +101,10 @@ export default function ParameterForm({ bill }) {
           </h2>
           <p className="mt-1 text-sm text-muted">
             Read the values off the bill on the left and fill them in here.
+            {form.values.site &&
+              (discom
+                ? ` Showing the fields for ${discom} bills.`
+                : ' This site has no DISCOM, so only fields for every DISCOM show.')}
           </p>
         </div>
 
@@ -77,32 +143,58 @@ export default function ParameterForm({ bill }) {
             />
           </section>
 
-          {PARAMETER_GROUPS.map((group) => (
-            <section key={group.title} className="px-6 py-6">
-              <h3 className="label-caps mb-4 flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-ink" aria-hidden />
-                {group.title}
-              </h3>
+          {sections.map((group) => (
+            <section key={group.key} className="px-6 py-6">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h3 className="label-caps flex items-center gap-2">
+                  <span className="size-1.5 rounded-full bg-ink" aria-hidden />
+                  {group.title}
+                </h3>
+                {mayAddField && (
+                  <button
+                    type="button"
+                    onClick={() => setAddingField({ group: group.key })}
+                    className="focus-ring -my-1 inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-semibold
+                      text-muted transition hover:bg-hover hover:text-ink"
+                  >
+                    <ListPlus className="size-4" />
+                    Add parameter
+                  </button>
+                )}
+              </div>
               <div className="grid items-start gap-x-4 gap-y-5 @sm:grid-cols-2 @3xl:grid-cols-3">
                 {group.fields.map((field) => (
-                  <TextField
-                    key={field.name}
-                    label={field.label}
-                    type={field.type}
-                    unit={field.unit}
-                    hint={field.hint}
-                    step={field.step}
-                    max={field.max}
-                    required={field.required}
-                    error={form.errors[field.name]}
-                    value={form.values[field.name]}
-                    onChange={(e) => form.setField(field.name, e.target.value)}
-                    placeholder={field.type === 'month' ? 'YYYY-MM' : '—'}
+                  <ParameterInput
+                    key={field.key}
+                    field={field}
+                    value={form.values[field.key]}
+                    error={form.errors[field.key]}
+                    onChange={(value) => form.setField(field.key, value)}
                   />
                 ))}
               </div>
             </section>
           ))}
+
+          {others.length > 0 && (
+            <section className="px-6 py-6">
+              <h3 className="label-caps mb-1.5 flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-line-strong" aria-hidden />
+                Other recorded values
+              </h3>
+              <p className="mb-4 text-xs text-subtle">
+                Saved on this bill for fields not on its form now (archived, or for another DISCOM). Kept as recorded.
+              </p>
+              <dl className="grid gap-x-4 gap-y-3 @sm:grid-cols-2 @3xl:grid-cols-3">
+                {others.map(([key, value]) => (
+                  <div key={key} className="min-w-0 rounded-xl bg-sunken px-3.5 py-2.5 ring-1 ring-inset ring-line">
+                    <dt className="truncate text-xs font-semibold text-subtle">{labels.get(key) ?? key}</dt>
+                    <dd className="num truncate text-sm text-ink">{String(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
         </div>
 
         {/* Narrow pane: status above two equal buttons. Wide pane: one row. */}
@@ -137,12 +229,21 @@ export default function ParameterForm({ bill }) {
         </footer>
       </form>
 
-      {/* Outside the form: the dialog has a form of its own, and forms can't nest.
+      {/* Outside the form: the dialogs have forms of their own, and forms can't nest.
           A new site is picked for this bill straight away; saving the bill stores it. */}
       {addingSite && (
         <SiteFormModal
           onClose={() => setAddingSite(false)}
           onSaved={(site) => form.setField('site', site.id)}
+        />
+      )}
+
+      {/* A parameter added while reading a bill is most likely this DISCOM's own. */}
+      {addingField && (
+        <FieldFormModal
+          groups={definitions.groups}
+          defaults={{ group: addingField.group, discoms: discom ? [discom] : [] }}
+          onClose={() => setAddingField(null)}
         />
       )}
     </>

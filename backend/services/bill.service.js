@@ -1,8 +1,9 @@
 import * as billData from '../data/bill.data.js';
 import * as storage from './storage.service.js';
+import * as billFieldService from './bill-field.service.js';
 import { assertExists as assertSiteExists } from './site.service.js';
 import { BILL_STATUS } from '../models/bill.model.js';
-import { NO_SITE } from '../validators/bill.validator.js';
+import { NO_SITE, buildParametersSchema } from '../validators/bill.validator.js';
 import { ApiError } from '../utils/api-error.js';
 import { env } from '../config/env.js';
 
@@ -116,23 +117,40 @@ export const getBill = async (id) => {
   return { ...toDto(bill), fileUrl };
 };
 
-/** Draft save: partial parameters and/or site, status untouched. */
-export const saveParameters = async (id, { site, ...parameters }) => {
-  const bill = await loadOrThrow(id);
+/**
+ * Files the bill under `site`, then checks `values` against the fields its
+ * site's DISCOM takes and merges them in. Values for any other field are
+ * dropped from the request but kept on the bill: moving a bill to another
+ * DISCOM's site, or archiving a field, never erases what was recorded.
+ */
+const applyParameters = async (bill, site, values, { submit }) => {
   await applySite(bill, site);
-  bill.parameters = { ...bill.parameters.toObject(), ...parameters };
+  await billData.populateSite(bill);
+  const fields = await billFieldService.fieldsForDiscom(bill.site?.discom);
+
+  const result = buildParametersSchema(fields, { submit }).safeParse(values);
+  if (!result.success) {
+    const details = result.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message }));
+    throw ApiError.badRequest('Validation failed', details);
+  }
+  bill.parameters = { ...bill.parameters.toObject(), ...result.data };
+};
+
+/** Draft save: partial parameters and/or site, status untouched. */
+export const saveParameters = async (id, { site, ...values }) => {
+  const bill = await loadOrThrow(id);
+  await applyParameters(bill, site, values, { submit: false });
   return saveAndShow(bill);
 };
 
-/** Final save: parameters and site were fully validated upstream, mark submitted. */
-export const submitParameters = async (id, { site, ...parameters }) => {
+/** Final save: every required field for the bill's DISCOM must be filled; marks it submitted. */
+export const submitParameters = async (id, { site, ...values }) => {
   const bill = await loadOrThrow(id);
   if (bill.status === BILL_STATUS.PENDING_UPLOAD) {
     throw ApiError.conflict('Cannot submit parameters before the file is uploaded');
   }
 
-  await applySite(bill, site);
-  bill.parameters = { ...bill.parameters.toObject(), ...parameters };
+  await applyParameters(bill, site, values, { submit: true });
   bill.status = BILL_STATUS.SUBMITTED;
   bill.submittedAt = new Date();
   return saveAndShow(bill);

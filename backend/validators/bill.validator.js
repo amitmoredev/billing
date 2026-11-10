@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BILL_STATUS } from '../models/bill.model.js';
+import { FIELD_TYPES } from '../constants/bill-fields.js';
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 export const OBJECT_ID = /^[a-f\d]{24}$/i;
@@ -26,22 +27,30 @@ export const optionalMonth = z.preprocess(
   z.string().regex(MONTH_PATTERN, 'Expected format YYYY-MM').optional()
 );
 
-/** Draft save — every field optional. */
-export const parametersDraftSchema = z.object({
-  customerNumber: optionalText,
-  consumerName: optionalText,
-  sanctionedLoad: optionalNumber({ min: 0 }),
-  contractDemand: optionalNumber({ min: 0 }),
-  connectedLoad: optionalNumber({ min: 0 }),
-  billMonth: optionalMonth,
-  kwhConsumption: optionalNumber({ min: 0 }),
-  kvahConsumption: optionalNumber({ min: 0 }),
-  kvaMd: optionalNumber({ min: 0 }),
-  kwMd: optionalNumber({ min: 0 }),
-  powerFactor: optionalNumber({ min: 0, max: 1 }),
-  powerFactorPenalty: optionalNumber(), // may be negative (rebate)
-  currentBillMonth: optionalMonth,
-});
+const valueSchema = (field) => {
+  if (field.type === FIELD_TYPES.NUMBER) {
+    return optionalNumber({ min: field.min ?? undefined, max: field.max ?? undefined });
+  }
+  return field.type === FIELD_TYPES.MONTH ? optionalMonth : optionalText;
+};
+
+/**
+ * The parameters a bill accepts, built from its fields' definitions (those
+ * that apply to its DISCOM). Keys of other fields are dropped, so values
+ * already stored under them are left alone. A draft may leave anything blank;
+ * a submit needs every required field.
+ */
+export const buildParametersSchema = (fields, { submit = false } = {}) => {
+  const schema = z.object(Object.fromEntries(fields.map((field) => [field.key, valueSchema(field)])));
+  if (!submit) return schema;
+  return schema.superRefine((data, ctx) => {
+    for (const field of fields) {
+      if (field.required && data[field.key] === undefined) {
+        ctx.addIssue({ code: 'custom', path: [field.key], message: 'Required' });
+      }
+    }
+  });
+};
 
 // Omitted = leave as is; blank or null = clear the site.
 const siteRef = z.preprocess(
@@ -49,18 +58,17 @@ const siteRef = z.preprocess(
   z.string().regex(OBJECT_ID, 'Pick a site').nullable().optional()
 );
 
-/** Draft save body: the parameters plus the bill's site. */
-export const billDraftSchema = parametersDraftSchema.extend({ site: siteRef });
+/**
+ * Draft save body: the bill's site plus its parameters. Which parameters a
+ * bill takes depends on its site's DISCOM, so the bill service checks them
+ * (buildParametersSchema) once it knows the site; they pass through here.
+ */
+export const billDraftSchema = z.looseObject({ site: siteRef });
 
-// A bill without these cannot be reconciled against anything.
-const REQUIRED_ON_SUBMIT = ['site', 'customerNumber', 'consumerName', 'billMonth', 'kwhConsumption'];
-
-/** Final submit — same shape, but the site and identifying fields must be present. */
+/** Final submit — a bill must be filed under a site. */
 export const billSubmitSchema = billDraftSchema.superRefine((data, ctx) => {
-  for (const field of REQUIRED_ON_SUBMIT) {
-    if (data[field] === undefined || data[field] === null) {
-      ctx.addIssue({ code: 'custom', path: [field], message: 'Required' });
-    }
+  if (data.site === undefined || data.site === null) {
+    ctx.addIssue({ code: 'custom', path: ['site'], message: 'Required' });
   }
 });
 

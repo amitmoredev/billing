@@ -22,6 +22,7 @@ export const ACTIONS = {
 export const SUBJECTS = {
   ALL: 'all',
   BILL: 'Bill',
+  BILL_FIELD: 'BillField', // the bill parameter form's fields and sections
   SITE: 'Site',
   USER: 'User',
 };
@@ -30,6 +31,8 @@ const RULES_BY_ROLE = {
   [ROLES.ADMIN]: [{ action: ACTIONS.MANAGE, subject: SUBJECTS.ALL }],
   [ROLES.CLIENT]: [
     { action: ACTIONS.MANAGE, subject: SUBJECTS.BILL },
+    // Clients fill the form; the fields on it are the admin's to change.
+    { action: ACTIONS.READ, subject: SUBJECTS.BILL_FIELD },
     // Every site is visible and can take bills; only its creator may change or remove it.
     { action: ACTIONS.READ, subject: SUBJECTS.SITE },
     { action: ACTIONS.CREATE, subject: SUBJECTS.SITE },
