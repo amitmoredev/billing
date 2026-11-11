@@ -7,6 +7,7 @@ import {
   billDraftSchema,
   billSubmitSchema,
   exportQuerySchema,
+  filterOptionsQuerySchema,
   idParamSchema,
   listQuerySchema,
   monthsQuerySchema,
@@ -25,6 +26,14 @@ router.get(
   allow(ACTIONS.READ),
   validate(statsQuerySchema, 'query'),
   billController.getStats
+);
+
+// The consumer numbers and bill months the list can be filtered by.
+router.get(
+  '/filter-options',
+  allow(ACTIONS.READ),
+  validate(filterOptionsQuerySchema, 'query'),
+  billController.getFilterOptions
 );
 
 // Upload flow: presign -> browser PUTs to R2 -> confirm.

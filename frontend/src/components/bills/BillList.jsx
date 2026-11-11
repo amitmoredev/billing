@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { FileText, SearchX, TriangleAlert } from 'lucide-react';
 import BillCard, { BILL_ROW_GRID } from './BillCard.jsx';
+import ColumnFilter from './ColumnFilter.jsx';
 import Button from '../ui/Button.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import Spinner from '../ui/Spinner.jsx';
@@ -11,7 +12,8 @@ const COLUMNS = ['Bill', 'Consumer no.', 'Bill month', 'Uploaded', 'Status'];
  * The bills table. A container, so its columns respond to the table's own
  * width rather than the window's — it stays readable however much room the
  * page gives it. `billHref(bill)` says where each row opens; `emptyHint`
- * replaces the "no bills yet" line.
+ * replaces the "no bills yet" line. `columnFilters`, keyed by column name,
+ * turns those headers into filters ({ value, options, onChange }).
  *
  * Bills arrive in batches: while `hasMore`, reaching the bottom of the list
  * calls `onLoadMore` for the next one.
@@ -23,6 +25,7 @@ export default function BillList({
   error,
   filtered,
   toolbar,
+  columnFilters,
   billHref,
   emptyHint,
   hasMore = false,
@@ -36,11 +39,15 @@ export default function BillList({
       {toolbar && <div className="border-b border-line px-5 py-4 lg:px-6">{toolbar}</div>}
 
       <div className={`hidden border-b border-line bg-sunken px-5 py-3 @3xl:grid lg:px-6 ${BILL_ROW_GRID}`}>
-        {COLUMNS.map((column) => (
-          <span key={column} className="label-caps whitespace-nowrap">
-            {column}
-          </span>
-        ))}
+        {COLUMNS.map((column) =>
+          columnFilters?.[column] ? (
+            <ColumnFilter key={column} label={column} {...columnFilters[column]} />
+          ) : (
+            <span key={column} className="label-caps whitespace-nowrap">
+              {column}
+            </span>
+          )
+        )}
         <span />
       </div>
 
@@ -119,7 +126,7 @@ function Body({ bills, loading, error, filtered, billHref, emptyHint }) {
       <EmptyState
         icon={SearchX}
         title="No matching bills"
-        description="Try a different search or status filter."
+        description="Try a different search or filter."
       />
     ) : (
       <EmptyState

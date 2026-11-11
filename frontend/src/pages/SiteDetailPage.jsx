@@ -13,15 +13,22 @@ import UploadDropzone from '../components/bills/UploadDropzone.jsx';
 import BillStats from '../components/bills/BillStats.jsx';
 import BillFilters from '../components/bills/BillFilters.jsx';
 import BillList from '../components/bills/BillList.jsx';
-import { useBillStats, useInfiniteBills } from '../queries/bill.query.js';
+import { useBillFilterOptions, useBillStats, useInfiniteBills } from '../queries/bill.query.js';
 import { useDeleteSite, useSites } from '../queries/site.query.js';
 import { useSession } from '../queries/auth.query.js';
 import { useBillUpload } from '../hooks/useBillUpload.js';
 import { useDebouncedValue } from '../hooks/useDebouncedValue.js';
 import { UNASSIGNED_SITE, useSitePaths } from '../hooks/useSitePaths.js';
 import { useToast } from '../context/toast.context.js';
-import { NO_SITE } from '../constants/bill.constants.js';
+import { BILL_STATUS, NO_SITE, STATUS_LABELS } from '../constants/bill.constants.js';
 import { ACTIONS, SUBJECTS } from '../constants/permission.constants.js';
+import { formatMonth } from '../utils/format.js';
+
+// The statuses a listed bill can have (unfinished uploads are never listed).
+const STATUS_FILTER_OPTIONS = [BILL_STATUS.UPLOADED, BILL_STATUS.SUBMITTED].map((status) => ({
+  value: status,
+  label: STATUS_LABELS[status],
+}));
 
 /**
  * One site and everything filed under it: its details, its numbers, an upload
@@ -42,7 +49,8 @@ export default function SiteDetailPage() {
   const { data: sites = [], isLoading: sitesLoading, error: sitesError } = useSites();
   const site = isUnassigned ? null : sites.find((s) => s.id === siteId);
 
-  const [filters, setFilters] = useState({ status: '', search: '' });
+  const [filters, setFilters] = useState({ status: '', search: '', customerNumber: '', billMonth: '' });
+  const patchFilters = (patch) => setFilters((prev) => ({ ...prev, ...patch }));
   const debouncedSearch = useDebouncedValue(filters.search, 350);
   const [editing, setEditing] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -51,10 +59,13 @@ export default function SiteDetailPage() {
   const { current, upload } = useBillUpload();
   const deleteSite = useDeleteSite();
   const { data: stats } = useBillStats({ site: apiSite });
+  const { data: filterOptions } = useBillFilterOptions({ site: apiSite });
   const { data, isLoading, error, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteBills({
     status: filters.status || undefined,
     site: apiSite,
     search: debouncedSearch || undefined,
+    customerNumber: filters.customerNumber || undefined,
+    billMonth: filters.billMonth || undefined,
   });
   // Batches can overlap if bills arrive between requests (the list is newest-first), so dedupe by id.
   const bills = useMemo(() => {
@@ -142,7 +153,7 @@ export default function SiteDetailPage() {
         onLoadMore={fetchNextPage}
         loading={isLoading}
         error={error}
-        filtered={Boolean(filters.status || debouncedSearch)}
+        filtered={Boolean(filters.status || debouncedSearch || filters.customerNumber || filters.billMonth)}
         billHref={paths.bill}
         emptyHint={
           isUnassigned
@@ -154,9 +165,26 @@ export default function SiteDetailPage() {
             status={filters.status}
             search={filters.search}
             counts={stats}
-            onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
+            onChange={patchFilters}
           />
         }
+        columnFilters={{
+          'Consumer no.': {
+            value: filters.customerNumber,
+            options: (filterOptions?.customerNumbers ?? []).map((n) => ({ value: n, label: n })),
+            onChange: (customerNumber) => patchFilters({ customerNumber }),
+          },
+          'Bill month': {
+            value: filters.billMonth,
+            options: (filterOptions?.months ?? []).map((m) => ({ value: m, label: formatMonth(m) })),
+            onChange: (billMonth) => patchFilters({ billMonth }),
+          },
+          Status: {
+            value: filters.status,
+            options: STATUS_FILTER_OPTIONS,
+            onChange: (status) => patchFilters({ status }),
+          },
+        }}
       />
 
       {editing && <SiteFormModal site={site} onClose={() => setEditing(false)} />}

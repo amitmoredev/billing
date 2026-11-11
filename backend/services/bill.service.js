@@ -90,13 +90,15 @@ export const confirmUpload = async (id) => {
   return saveAndShow(bill);
 };
 
-export const listBills = async ({ status, site, search, page = 1, limit = 20 }) => {
+export const listBills = async ({ status, site, search, customerNumber, billMonth, page = 1, limit = 20 }) => {
   // Half-finished uploads are internal state; hide them unless asked for.
   const effectiveStatus = status || { $ne: BILL_STATUS.PENDING_UPLOAD };
   const { items, total } = await billData.findMany({
     status: effectiveStatus,
     site: toSiteFilter(site),
     search,
+    customerNumber,
+    billMonth,
     page,
     limit,
   });
@@ -162,6 +164,15 @@ export const deleteBill = async (id) => {
   await storage.deleteObject(bill.file.key);
   await billData.deleteById(id);
   return { id };
+};
+
+/** Choices for the list's column filters: consumer numbers ascending, bill months newest first. */
+export const getFilterOptions = async ({ site } = {}) => {
+  const { customerNumbers, months } = await billData.distinctFilterValues({ site: toSiteFilter(site) });
+  return {
+    customerNumbers: customerNumbers.map(String).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    months: months.sort().reverse(),
+  };
 };
 
 export const getStats = async ({ site } = {}) => {

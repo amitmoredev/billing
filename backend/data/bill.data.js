@@ -17,9 +17,11 @@ export const findById = (id) => Bill.findById(id);
 /** Fills in `bill.site` with the site's name and code. */
 export const populateSite = (bill) => bill.populate('site', SITE_FIELDS);
 
-export const findMany = async ({ status, site, search, page, limit }) => {
+export const findMany = async ({ status, site, search, customerNumber, billMonth, page, limit }) => {
   const filter = { ...siteMatch(site) };
   if (status) filter.status = status;
+  if (customerNumber) filter['parameters.customerNumber'] = customerNumber;
+  if (billMonth) filter['parameters.billMonth'] = billMonth;
   if (search) {
     const rx = new RegExp(escapeRegex(search), 'i');
     filter.$or = [
@@ -53,6 +55,19 @@ export const countByStatus = ({ site } = {}) =>
     { $match: siteMatch(site ? new mongoose.Types.ObjectId(site) : site) },
     { $group: { _id: '$status', count: { $sum: 1 } } },
   ]);
+
+/**
+ * The consumer numbers and bill months filled in on listed bills (finished
+ * uploads only), optionally at one site — the choices of the list's filters.
+ */
+export const distinctFilterValues = async ({ site } = {}) => {
+  const match = { status: { $ne: BILL_STATUS.PENDING_UPLOAD }, ...siteMatch(site) };
+  const [customerNumbers, months] = await Promise.all([
+    Bill.distinct('parameters.customerNumber', match),
+    Bill.distinct('parameters.billMonth', match),
+  ]);
+  return { customerNumbers: customerNumbers.filter(Boolean), months: months.filter(Boolean) };
+};
 
 // What an export needs of a bill's site: its label and DISCOM.
 const EXPORT_SITE_FIELDS = 'name code discom';

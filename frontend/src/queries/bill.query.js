@@ -10,6 +10,8 @@ export const billKeys = {
   detail: (id) => ['bills', 'detail', id],
   allStats: () => ['bills', 'stats'],
   stats: (params) => ['bills', 'stats', params],
+  allFilterOptions: () => ['bills', 'filter-options'],
+  filterOptions: (params) => ['bills', 'filter-options', params],
   allMonths: () => ['bills', 'months'],
   months: (params) => ['bills', 'months', params],
 };
@@ -57,13 +59,22 @@ export const useBillStats = (params) =>
     placeholderData: (prev) => prev, // tiles keep their numbers while the site filter changes
   });
 
-// Refetch lists, stats, export months and per-site bill counts in the background. Never return
+/** Consumer numbers and bill months on the listed bills, for the table's column filters. */
+export const useBillFilterOptions = (params) =>
+  useQuery({
+    queryKey: billKeys.filterOptions(params),
+    queryFn: () => billService.getFilterOptions(params),
+    placeholderData: (prev) => prev,
+  });
+
+// Refetch lists, stats, filter options, export months and per-site bill counts in the background. Never return
 // this promise from `onSuccess`: the mutation would stay pending (spinner and
 // all) until every refetch finished.
 const refreshLists = (queryClient) => {
   queryClient.invalidateQueries({ queryKey: billKeys.lists() });
   queryClient.invalidateQueries({ queryKey: billKeys.allStats() });
   queryClient.invalidateQueries({ queryKey: billKeys.allMonths() });
+  queryClient.invalidateQueries({ queryKey: billKeys.allFilterOptions() });
   queryClient.invalidateQueries({ queryKey: siteKeys.all });
 };
 

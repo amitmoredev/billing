@@ -89,11 +89,15 @@ export const listQuerySchema = z.object({
   status: z.enum([BILL_STATUS.PENDING_UPLOAD, BILL_STATUS.UPLOADED, BILL_STATUS.SUBMITTED]).optional(),
   site: siteFilter,
   search: z.preprocess(blankToUndefined, z.string().max(200).optional()),
+  customerNumber: optionalText,
+  billMonth: optionalMonth,
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export const statsQuerySchema = z.object({ site: siteFilter });
+
+export const filterOptionsQuerySchema = z.object({ site: siteFilter });
 
 export const idParamSchema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid bill id'),

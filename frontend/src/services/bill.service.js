@@ -9,6 +9,9 @@ export const getBill = (id) => http(ENDPOINTS.bills.detail(id));
 
 export const getStats = (params) => http(ENDPOINTS.bills.stats(), { params });
 
+/** `{ customerNumbers, months }` the list can be filtered by. */
+export const getFilterOptions = (params) => http(ENDPOINTS.bills.filterOptions(), { params });
+
 /** `values` is the parameters plus `site` (an id, or '' for none). */
 export const saveParameters = (id, values) =>
   http(ENDPOINTS.bills.saveParameters(id), { method: 'PATCH', body: values });

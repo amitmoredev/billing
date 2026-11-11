@@ -12,6 +12,7 @@ export const ENDPOINTS = {
   bills: {
     list: () => '/bills',
     stats: () => '/bills/stats',
+    filterOptions: () => '/bills/filter-options',
     detail: (id) => `/bills/${id}`,
     remove: (id) => `/bills/${id}`,
     presignUpload: () => '/bills/uploads/presign',

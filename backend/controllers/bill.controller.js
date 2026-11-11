@@ -49,6 +49,10 @@ export const getStats = asyncHandler(async (req, res) => {
   ok(res, await billService.getStats(req.validated.query));
 });
 
+export const getFilterOptions = asyncHandler(async (req, res) => {
+  ok(res, await billService.getFilterOptions(req.validated.query));
+});
+
 /**
  * Bill links in the file point back into the app. The address is the
  * requesting page's origin when it is one we serve, else the first we do.
