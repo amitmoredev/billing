@@ -40,7 +40,7 @@ export const SYSTEM_FIELDS = [
   { key: 'kvahConsumption', label: 'kVAh Consumption', type: NUMBER, unit: 'kVAh', min: 0, group: 'consumption' },
   { key: 'kvaMd', label: 'kVA (MD)', type: NUMBER, unit: 'kVA', min: 0, group: 'demand' },
   { key: 'kwMd', label: 'kW (MD)', type: NUMBER, unit: 'kW', min: 0, group: 'demand' },
-  { key: 'powerFactor', label: 'Power Factor', type: NUMBER, min: 0, max: 1, step: 0.01, group: 'demand' },
+  { key: 'powerFactor', label: 'Power Factor', type: NUMBER, min: 0, max: 1, step: 0.001, group: 'demand' },
   // ₹; negative when the DISCOM pays a rebate.
   { key: 'powerFactorPenalty', label: 'Power Factor Penalty', type: NUMBER, unit: '₹', group: 'demand' },
 ];

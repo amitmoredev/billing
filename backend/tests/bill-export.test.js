@@ -35,15 +35,25 @@ const rowOf = (sheet, n) => {
 };
 
 describe('bill export', () => {
-  test('one sheet per month, oldest first, named like the client’s', async () => {
+  test('every month on one sheet, oldest first, named for the span', async () => {
     const wb = await roundTrip(
       buildWorkbook([bill(SITE_A, '1', '2026-09'), bill(SITE_A, '1', '2026-08'), bill(SITE_B, '2', '2026-08')])
     );
     assert.deepEqual(
       wb.worksheets.map((s) => s.name),
-      ['August 2026 Master', 'September 2026 Master']
+      ['Aug 2026 to Sep 2026 Master']
     );
-    assert.equal(wb.worksheets[0].rowCount, 4); // totals, header, two bills
+    const sheet = wb.worksheets[0];
+    assert.equal(sheet.rowCount, 5); // totals, header, three bills
+    assert.deepEqual(
+      [3, 4, 5].map((n) => rowOf(sheet, n)['Bill Month']),
+      ['August 2026', 'August 2026', 'September 2026']
+    );
+  });
+
+  test('a single month names the sheet like the client’s', async () => {
+    const wb = await roundTrip(buildWorkbook([bill(SITE_A, '1', '2026-08')]));
+    assert.equal(wb.worksheets[0].name, 'August 2026 Master');
   });
 
   test('their columns, in their order, from column B', async () => {
@@ -55,6 +65,7 @@ describe('bill export', () => {
       'Electricity Bill Link',
       'DISCOM',
       'Consumer No.',
+      'Bill Month',
       'Sanctioned Load (kW)',
       'Connected Load (kW)',
       'Contract Demand (kVA)',
@@ -99,7 +110,7 @@ describe('bill export', () => {
   test('kVAr Required is their live formula, kVA MD × TAN(ACOS(PF)), with a cached result', async () => {
     const wb = await roundTrip(buildWorkbook([bill(SITE_A, '1', '2026-08', { kvaMd: 32.14, powerFactor: 0.9568 })]));
     const cell = rowOf(wb.worksheets[0], 3)['kVAr Required'];
-    assert.equal(cell.formula, 'IF(AND(ISNUMBER(J3),ISNUMBER(M3),M3>0,M3<=1),J3*TAN(ACOS(M3)),"")');
+    assert.equal(cell.formula, 'IF(AND(ISNUMBER(K3),ISNUMBER(N3),N3>0,N3<=1),K3*TAN(ACOS(N3)),"")');
     assert.ok(Math.abs(cell.result - 32.14 * Math.tan(Math.acos(0.9568))) < 1e-9);
   });
 
@@ -119,9 +130,9 @@ describe('bill export', () => {
       ])
     );
     const totals = wb.worksheets[0].getRow(1);
-    assert.equal(totals.getCell('J').value.formula, 'SUBTOTAL(9,J3:J4)');
-    assert.equal(totals.getCell('J').value.result, 15);
-    assert.equal(totals.getCell('K').value.result, 150);
+    assert.equal(totals.getCell('K').value.formula, 'SUBTOTAL(9,K3:K4)');
+    assert.equal(totals.getCell('K').value.result, 15);
+    assert.equal(totals.getCell('L').value.result, 150);
     assert.equal(totals.getCell('C').value.formula, 'SUBTOTAL(3,C3:C4)');
     assert.equal(totals.getCell('C').value.result, 2);
   });
@@ -146,7 +157,7 @@ describe('bill export', () => {
     assert.equal(rowOf(sheet, 3)['kWh Consumption'], 120);
   });
 
-  test('rows sort by site, then consumer number', async () => {
+  test('within a month, rows sort by site, then consumer number', async () => {
     const wb = await roundTrip(
       buildWorkbook([bill(SITE_A, '9', '2026-08'), bill(SITE_B, '5', '2026-08'), bill(SITE_A, '3', '2026-08')])
     );

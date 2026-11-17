@@ -6,8 +6,8 @@ import { ApiError } from '../utils/api-error.js';
 import { appliesToDiscom } from '../utils/bill-fields.js';
 
 // Excel export of verified bills, laid out like the client's own "Bill
-// Analysis" workbook (its "August Master" sheet): one sheet per bill month,
-// their column names in their order, Montserrat, bordered cells, totals in
+// Analysis" workbook (its "August Master" sheet): every bill month on one
+// sheet, a Bill Month column telling them apart, their column names in their order, Montserrat, bordered cells, totals in
 // row 1 and the header frozen in row 2. Only fields the app captures are
 // exported — their Meter Number, Unit Rate, Monthly Bill and Potential
 // Savings columns are left out until bills carry those values. Fields added
@@ -31,6 +31,7 @@ const COLUMNS = [
   { key: 'link', header: 'Electricity Bill Link', width: 50, total: 3 },
   { key: 'discom', header: 'DISCOM', width: 20 },
   { key: 'consumerNumber', header: 'Consumer No.', width: 17, total: 3 },
+  { key: 'billMonth', header: 'Bill Month', width: 16 },
   { key: 'sanctionedLoad', header: 'Sanctioned Load (kW)', width: 13.63 },
   { key: 'connectedLoad', header: 'Connected Load (kW)', width: 13 },
   { key: 'contractDemand', header: 'Contract Demand (kVA)', width: 13 },
@@ -125,8 +126,14 @@ const fieldColumns = (fields, bills) =>
       },
     }));
 
-const addMonthSheet = (workbook, month, bills, appUrl, fields) => {
-  const sheet = workbook.addWorksheet(`${monthTitle(month)} Master`, {
+/** "August 2026" for one month, "Apr 2025 to Mar 2026" for several (oldest first). */
+const monthSpan = (months) => {
+  const short = (month) => monthTitle(month).replace(/^(\w{3})\w*/, '$1');
+  return months.length === 1 ? monthTitle(months[0]) : `${short(months[0])} to ${short(months.at(-1))}`;
+};
+
+const addSheet = (workbook, name, bills, appUrl, fields) => {
+  const sheet = workbook.addWorksheet(name, {
     views: [{ state: 'frozen', ySplit: HEADER_ROW }],
   });
   const lastRow = FIRST_DATA_ROW + bills.length - 1;
@@ -202,6 +209,7 @@ const rowValues = (bill) => {
     link: bill.file?.originalName ?? '',
     discom: bill.site?.discom || '',
     consumerNumber: p.customerNumber ? String(p.customerNumber) : '',
+    billMonth: MONTH_PATTERN.test(p.billMonth ?? '') ? monthTitle(p.billMonth) : '',
     sanctionedLoad: number(p.sanctionedLoad),
     connectedLoad: number(p.connectedLoad),
     contractDemand: number(p.contractDemand),
@@ -214,8 +222,8 @@ const rowValues = (bill) => {
 };
 
 /**
- * The workbook for `bills` (lean docs, `site` populated): a sheet per bill
- * month, oldest first, rows sorted by site then consumer number. `fields` and
+ * The workbook for `bills` (lean docs, `site` populated): one sheet, rows
+ * sorted by bill month (oldest first), then site, then consumer number. `fields` and
  * `groups` are the parameter form's definitions; the admin's fields become
  * extra columns. Pure — no database — so tests build it straight from bills.
  */
@@ -227,27 +235,21 @@ export const buildWorkbook = (bills, { appUrl, fields = [], groups = [] } = {}) 
   // Excel works every formula out afresh on open, rather than trusting cached results.
   workbook.calcProperties.fullCalcOnLoad = true;
 
-  const byMonth = new Map();
-  for (const bill of dedupe(bills.filter((b) => b.parameters?.billMonth))) {
-    const month = bill.parameters.billMonth;
-    if (!byMonth.has(month)) byMonth.set(month, []);
-    byMonth.get(month).push(bill);
-  }
-
   const order = (a, b) =>
+    a.parameters.billMonth.localeCompare(b.parameters.billMonth) ||
     siteName(a.site).localeCompare(siteName(b.site)) ||
     String(a.parameters.customerNumber ?? '').localeCompare(String(b.parameters.customerNumber ?? ''));
-  for (const month of [...byMonth.keys()].sort()) {
-    addMonthSheet(workbook, month, byMonth.get(month).sort(order), appUrl, extra);
-  }
+  const rows = dedupe(bills.filter((b) => b.parameters?.billMonth)).sort(order);
+  if (!rows.length) return workbook;
+
+  const months = [...new Set(rows.map((b) => b.parameters.billMonth))];
+  addSheet(workbook, `${monthSpan(months)} Master`, rows, appUrl, extra);
   return workbook;
 };
 
 /** "Bill data - August 2026.xlsx", "Bill data - Pune Plant 2 - Apr 2025 to Mar 2026.xlsx" */
 const fileNameFor = (months, site) => {
-  const short = (month) => monthTitle(month).replace(/^(\w{3})\w*/, '$1');
-  const span = months.length === 1 ? monthTitle(months[0]) : `${short(months[0])} to ${short(months.at(-1))}`;
-  const name = ['Bill data', siteName(site), span].filter(Boolean).join(' - ');
+  const name = ['Bill data', siteName(site), monthSpan(months)].filter(Boolean).join(' - ');
   return `${name.replace(/[\\/:*?"<>|]/g, '-')}.xlsx`;
 };
 

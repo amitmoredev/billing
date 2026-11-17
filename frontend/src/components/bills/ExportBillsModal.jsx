@@ -10,8 +10,8 @@ import { useToast } from '../../context/toast.context.js';
 import { formatMonth, siteLabel } from '../../utils/format.js';
 
 /**
- * Downloads verified bills as Excel, in the client's workbook layout (one
- * sheet per month). Pick a site — or all — and one month, a range, or every
+ * Downloads verified bills as Excel, in the client's workbook layout (every
+ * month on one sheet). Pick a site — or all — and one month, a range, or every
  * month on record. `siteId` preselects a site.
  */
 export default function ExportBillsModal({ siteId = '', onClose }) {
@@ -49,7 +49,7 @@ export default function ExportBillsModal({ siteId = '', onClose }) {
   return (
     <Modal
       title="Export to Excel"
-      description="Verified bills, one sheet per month, in the Bill Analysis layout."
+      description="Verified bills on one sheet, in the Bill Analysis layout."
       onClose={onClose}
     >
       <ModalBody className="space-y-4">
