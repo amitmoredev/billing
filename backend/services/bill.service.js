@@ -53,7 +53,7 @@ const applySite = async (bill, site) => {
 };
 
 /** Step 1 — reserve a DB row and hand back a direct-to-R2 upload URL. */
-export const createUploadIntent = async ({ fileName, mimeType, size, siteId }) => {
+export const createUploadIntent = async ({ fileName, mimeType, size, siteId }, user) => {
   if (!env.upload.allowedMimeTypes.includes(mimeType)) {
     throw ApiError.badRequest(`Unsupported file type: ${mimeType}`);
   }
@@ -67,6 +67,7 @@ export const createUploadIntent = async ({ fileName, mimeType, size, siteId }) =
     file: { key, bucket: storage.bucketName, originalName: fileName, mimeType, size },
     site: siteId ?? null,
     status: BILL_STATUS.PENDING_UPLOAD,
+    uploadedBy: user._id,
   });
 
   const uploadUrl = await storage.createUploadUrl({ key, mimeType });

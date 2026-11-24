@@ -44,6 +44,9 @@ const billSchema = new mongoose.Schema(
       index: true,
     },
     parameters: { type: parametersSchema, default: () => ({}) },
+    // Who uploaded the file (admin or client — read their role off the user).
+    // Null on bills uploaded before this was tracked.
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     uploadedAt: { type: Date },
     submittedAt: { type: Date },
   },

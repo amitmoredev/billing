@@ -11,7 +11,7 @@ import { ok } from '../utils/api-response.js';
 const toSiteFilter = (site) => (site === NO_SITE ? null : site);
 
 export const createUploadIntent = asyncHandler(async (req, res) => {
-  const data = await billService.createUploadIntent(req.validated.body);
+  const data = await billService.createUploadIntent(req.validated.body, req.user);
   ok(res, data, 201);
 });
 
